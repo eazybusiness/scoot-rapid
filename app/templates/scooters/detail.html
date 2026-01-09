@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Scooter Details - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('scooters.list_scooters') }}">Scooter</a></li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </nav>
+            <h2 class="mb-4">
+                <i class="bi bi-bicycle"></i> Scooter Details
+            </h2>
+        </div>
+    </div>
+
+    {% if scooter %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ scooter.model }} ({{ scooter.license_plate }})</h5>
+                    <span class="badge 
+                        {% if scooter.status == 'available' %}bg-success
+                        {% elif scooter.status == 'in_use' %}bg-warning
+                        {% else %}bg-danger{% endif %}">
+                        {% if scooter.status == 'available' %}Verfügbar
+                        {% elif scooter.status == 'in_use' %}In Benutzung
+                        {% else %}Wartung{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Informationen</h6>
+                            <p><strong>Modell:</strong> {{ scooter.model }}</p>
+                            <p><strong>Marke:</strong> {{ scooter.brand }}</p>
+                            <p><strong>Kennzeichen:</strong> {{ scooter.license_plate }}</p>
+                            <p><strong>Identifikator:</strong> {{ scooter.identifier }}</p>
+                            <p><strong>Batterie:</strong> {{ scooter.battery_level }}%</p>
+                            <p><strong>Status:</strong> 
+                                {% if scooter.status == 'available' %}
+                                <span class="badge bg-success">Verfügbar</span>
+                                {% elif scooter.status == 'in_use' %}
+                                <span class="badge bg-warning">In Benutzung</span>
+                                {% else %}
+                                <span class="badge bg-danger">Wartung</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Standort</h6>
+                            <p><strong>Adresse:</strong> {{ scooter.address or '-' }}</p>
+                            <p><strong>Breitengrad:</strong> {{ scooter.latitude or '-' }}</p>
+                            <p><strong>Längengrad:</strong> {{ scooter.longitude or '-' }}</p>
+                            <p><strong>Standort:</strong> {{ scooter.location or '-' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>Statistiken</h6>
+                            {% if stats %}
+                            <p><strong>Gesamtumsatz:</strong> €{{ "%.2f"|format(stats.total_revenue or 0) }}</p>
+                            <p><strong>Auslastung:</strong> {{ "%.1f"|format(stats.utilization_rate or 0) }}%</p>
+                            <p><strong>Anzahl Ausleihen:</strong> {{ stats.rental_count or 0 }}</p>
+                            {% else %}
+                            <p><em>Keine Statistiken verfügbar</em></p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Wartungsstatus</h6>
+                            {% if stats and stats.needs_maintenance %}
+                            <p><span class="badge bg-warning">Wartung benötigt</span></p>
+                            <p><small>Bitte überprüfen Sie den Scooter.</small></p>
+                            {% else %}
+                            <p><span class="badge bg-success">In gutem Zustand</span></p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if scooter.latitude and scooter.longitude %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Karte</h6>
+                            <div class="alert alert-info">
+                                <i class="bi bi-geo-alt"></i> 
+                                Standort: {{ scooter.latitude }}, {{ scooter.longitude }}
+                                <br>
+                                <small>Kartenintegration kann hier hinzugefügt werden.</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Aktionen</h5>
+                </div>
+                <div class="card-body">
+                    {% if scooter.status == 'available' and current_user.role == 'customer' %}
+                    <a href="{{ url_for('rental.start', scooter_id=scooter.id) }}" class="btn btn-success btn-block mb-2">
+                        <i class="bi bi-play-circle"></i> Jetzt ausleihen
+                    </a>
+                    {% endif %}
+
+                    {% if current_user.can_manage_scooters() and (current_user.is_admin() or (current_user.is_provider() and scooter.provider_id == current_user.id)) %}
+                    <a href="{{ url_for('scooters.edit', scooter_id=scooter.id) }}" class="btn btn-primary btn-block mb-2">
+                        <i class="bi bi-pencil"></i> Bearbeiten
+                    </a>
+                    
+                    <form method="POST" action="{{ url_for('scooters.update_status', scooter_id=scooter.id) }}" class="mb-2">
+                        <div class="input-group">
+                            <select name="status" class="form-control">
+                                <option value="available" {% if scooter.status == 'available' %}selected{% endif %}>Verfügbar</option>
+                                <option value="in_use" {% if scooter.status == 'in_use' %}selected{% endif %}>In Benutzung</option>
+                                <option value="maintenance" {% if scooter.status == 'maintenance' %}selected{% endif %}>Wartung</option>
+                            </select>
+                            <button type="submit" class="btn btn-outline-secondary">Update</button>
+                        </div>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('scooters.delete', scooter_id=scooter.id) }}" class="mb-2">
+                        <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('Scooter wirklich löschen?')">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <div class="mt-3">
+                        <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-outline-secondary btn-block">
+                            <i class="bi bi-arrow-left"></i> Zurück zur Liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if scooter.status == 'available' and current_user.role == 'customer' %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Preisinformationen</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Startgebühr:</strong> €1.50</p>
+                    <p><strong>Preis/Minute:</strong> €0.30</p>
+                    <p><strong>Max. Dauer:</strong> 12 Stunden</p>
+                    <hr>
+                    <p class="mb-0"><small class="text-muted">Preise inkl. MwSt.</small></p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Nutzungsbedingungen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Altersbeschränkung</h6>
+                            <p>Mindestalter 18 Jahre. Gültiger Führerschein erforderlich.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Sicherheit</h6>
+                            <p>Helmpflicht beachten. Verkehrsregeln strikt einhalten.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Haftung</h6>
+                            <p>Sie sind für den Scooter verantwortlich. Bei Beschädigung haften Sie.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h5>Scooter nicht gefunden</h5>
+                <p>Der gesuchte Scooter existiert nicht oder wurde gelöscht.</p>
+                <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-primary">
+                    Zurück zur Liste
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

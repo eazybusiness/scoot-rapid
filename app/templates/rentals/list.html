@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Ausleihen - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-clock-history"></i> Ausleihen
+            </h2>
+        </div>
+    </div>
+
+    {% if rentals %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Benutzer</th>
+                                    <th>Scooter</th>
+                                    <th>Start</th>
+                                    <th>Ende</th>
+                                    <th>Dauer</th>
+                                    <th>Kosten</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in rentals %}
+                                <tr>
+                                    <td>{{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>
+                                        {% if rental.user %}
+                                            {{ rental.user.first_name }} {{ rental.user.last_name }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rental.scooter %}
+                                            {{ rental.scooter.model }} ({{ rental.scooter.license_plate }})
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ rental.start_time.strftime('%H:%M') if rental.start_time else '-' }}</td>
+                                    <td>{{ rental.end_time.strftime('%H:%M') if rental.end_time else '-' }}</td>
+                                    <td>{{ rental.get_duration_formatted() }}</td>
+                                    <td>€{{ "%.2f"|format(rental.total_cost or 0) }}</td>
+                                    <td>
+                                        {% if rental.status == 'completed' %}
+                                        <span class="badge bg-success">Abgeschlossen</span>
+                                        {% elif rental.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Storniert</span>
+                                        {% elif rental.status == 'active' %}
+                                        <span class="badge bg-warning">Aktiv</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Gebucht</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('rentals.detail', rental_id=rental.id) }}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if rental.status == 'active' %}
+                                            <form method="POST" action="{{ url_for('rentals.end', rental_id=rental.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Ausleihe beenden?')">
+                                                    <i class="bi bi-stop-circle"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-clock-history display-1 text-muted"></i>
+                <h5 class="mt-3">Keine Ausleihen gefunden</h5>
+                <p class="text-muted">Es wurden noch keine Ausleihen getätigt.</p>
+                <a href="{{ url_for('scooters.available') }}" class="btn btn-primary">
+                    <i class="bi bi-bicycle"></i> Scooter ansehen
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

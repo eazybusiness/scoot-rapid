@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Scooter Ausleihen - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-play-circle"></i> Scooter Ausleihen
+            </h2>
+        </div>
+    </div>
+
+    {% if scooter %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ scooter.model }} ({{ scooter.license_plate }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Scooter-Informationen</h6>
+                            <p><strong>Modell:</strong> {{ scooter.model }}</p>
+                            <p><strong>Marke:</strong> {{ scooter.brand }}</p>
+                            <p><strong>Kennzeichen:</strong> {{ scooter.license_plate }}</p>
+                            <p><strong>Batterie:</strong> {{ scooter.battery_level }}%</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-success">Verfügbar</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Preisinformationen</h6>
+                            <p><strong>Startgebühr:</strong> €1.50</p>
+                            <p><strong>Preis pro Minute:</strong> €0.30</p>
+                            <p><strong>Maximale Dauer:</strong> 12 Stunden</p>
+                            <p><strong>Standort:</strong> {{ scooter.location or scooter.address }}</p>
+                        </div>
+                    </div>
+
+                    {% if scooter.latitude and scooter.longitude %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>Standort</h6>
+                            <div class="alert alert-info">
+                                <i class="bi bi-geo-alt"></i> 
+                                Koordinaten: {{ scooter.latitude }}, {{ scooter.longitude }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ausleihe starten</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="latitude" class="form-label">Start-Breitengrad</label>
+                            <input type="number" step="0.000001" name="latitude" class="form-control" 
+                                   value="{{ scooter.latitude or '' }}" required>
+                            <small class="form-text text-muted">GPS-Koordinate des Startorts</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="longitude" class="form-label">Start-Längengrad</label>
+                            <input type="number" step="0.000001" name="longitude" class="form-control" 
+                                   value="{{ scooter.longitude or '' }}" required>
+                            <small class="form-text text-muted">GPS-Koordinate des Startorts</small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-exclamation-triangle"></i> Wichtige Hinweise</h6>
+                            <ul class="mb-0">
+                                <li>Sie müssen mindestens 18 Jahre alt sein</li>
+                                <li>Tragen Sie immer einen Helm</li>
+                                <li>Folgen Sie den Verkehrsregeln</li>
+                                <li>Die maximale Mietdauer beträgt 12 Stunden</li>
+                                <li>Die Kosten werden pro Minute berechnet</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="bi bi-play-circle"></i> Ausleihe starten
+                        </button>
+                    </form>
+
+                    <div class="mt-3">
+                        <a href="{{ url_for('scooters.available') }}" class="btn btn-outline-secondary btn-block">
+                            <i class="bi bi-arrow-left"></i> Zurück zu verfügbaren Scootern
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Nutzungsbedingungen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Haftung</h6>
+                            <p>Sie sind für den Scooter und eventuelle Schäden verantwortlich. Bei Beschädigung oder Diebstahl können Ihnen Kosten in Rechnung gestellt werden.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Sicherheit</h6>
+                            <p>Fahren Sie vorsichtig und beachten Sie andere Verkehrsteilnehmer. Alkohol oder Drogen am Steuer sind strengstens verboten.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h5>Scooter nicht gefunden</h5>
+                <p>Der gewünschte Scooter ist nicht mehr verfügbar oder existiert nicht.</p>
+                <a href="{{ url_for('scooters.available') }}" class="btn btn-primary">
+                    Zu verfügbaren Scootern
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

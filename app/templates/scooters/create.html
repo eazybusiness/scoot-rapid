@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Scooter Erstellen - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('scooters.list_scooters') }}">Scooter</a></li>
+                    <li class="breadcrumb-item active">Erstellen</li>
+                </ol>
+            </nav>
+            <h2 class="mb-4">
+                <i class="bi bi-plus-circle"></i> Neuen Scooter erstellen
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Scooter-Informationen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="identifier" class="form-label">Identifikator *</label>
+                                    <input type="text" name="identifier" class="form-control" id="identifier" required>
+                                    <small class="form-text text-muted">Eindeutige Kennung für den Scooter</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="license_plate" class="form-label">Kennzeichen</label>
+                                    <input type="text" name="license_plate" class="form-control" id="license_plate">
+                                    <small class="form-text text-muted">Offizielles Kennzeichen (optional)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="model" class="form-label">Modell *</label>
+                                    <input type="text" name="model" class="form-control" id="model" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Marke *</label>
+                                    <input type="text" name="brand" class="form-control" id="brand" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="battery_level" class="form-label">Batteriestand (%)</label>
+                                    <input type="number" name="battery_level" class="form-control" id="battery_level" 
+                                           min="0" max="100" value="100">
+                                    <small class="form-text text-muted">0-100%</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select name="status" class="form-control" id="status">
+                                        <option value="available">Verfügbar</option>
+                                        <option value="maintenance">Wartung</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Standortadresse *</label>
+                            <input type="text" name="address" class="form-control" id="address" required>
+                            <small class="form-text text-muted">Wo befindet sich der Scooter?</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="latitude" class="form-label">Breitengrad *</label>
+                                    <input type="number" step="0.000001" name="latitude" class="form-control" id="latitude" required>
+                                    <small class="form-text text-muted">GPS-Koordinate</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="longitude" class="form-label">Längengrad *</label>
+                                    <input type="number" step="0.000001" name="longitude" class="form-control" id="longitude" required>
+                                    <small class="form-text text-muted">GPS-Koordinate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Standortbeschreibung</label>
+                            <input type="text" name="location" class="form-control" id="location">
+                            <small class="form-text text-muted">Zusätzliche Standortinformationen</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Scooter erstellen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Hinweise</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Wichtige Informationen</h6>
+                        <ul class="mb-0">
+                            <li>Der Identifikator muss einzigartig sein</li>
+                            <li>GPS-Koordinaten sind für die Standortermittlung erforderlich</li>
+                            <li>Der Batteriestand sollte aktuell sein</li>
+                            <li>Nur verfügbare Scooter können von Kunden gemietet werden</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Sicherheit</h6>
+                        <p class="mb-0">Stellen Sie sicher, dass der Scooter in einwandfreiem Zustand ist, bevor Sie ihn als verfügbar markieren.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">GPS-Koordinaten</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Wie finde ich die Koordinaten?</strong></p>
+                    <ol>
+                        <li>Öffnen Sie Google Maps</li>
+                        <li>Klicken Sie auf den gewünschten Standort</li>
+                        <li>Kopieren Sie die Koordinaten aus der URL</li>
+                        <li>Fügen Sie sie in die entsprechenden Felder ein</li>
+                    </ol>
+                    <p class="mb-0"><small class="text-muted">Format: 52.520008, 13.404954</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
