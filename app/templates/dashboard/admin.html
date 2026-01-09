@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Admin-Dashboard - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-gear"></i> Admin-Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamtbenutzer</h5>
+                    <h2 class="text-primary">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamt-Scooter</h5>
+                    <h2 class="text-info">{{ total_scooters }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamtausleihen</h5>
+                    <h2 class="text-success">{{ total_rentals }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Aktive Ausleihen</h5>
+                    <h2 class="text-warning">{{ active_rentals }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scooter Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bicycle"></i> Scooter-Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="alert alert-success">
+                                <h6>Verfügbar</h6>
+                                <h4>{{ available_scooters }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-warning">
+                                <h6>In Benutzung</h6>
+                                <h4>{{ in_use_scooters }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-danger">
+                                <h6>Wartung</h6>
+                                <h4>{{ maintenance_scooters }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Rentals -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Neueste Ausleihen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_rentals %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Benutzer</th>
+                                    <th>Scooter</th>
+                                    <th>Status</th>
+                                    <th>Kosten</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in recent_rentals %}
+                                <tr>
+                                    <td>{{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>{{ rental.user.first_name }} {{ rental.user.last_name }}</td>
+                                    <td>{{ rental.scooter.model }} ({{ rental.scooter.license_plate }})</td>
+                                    <td>
+                                        {% if rental.status == 'completed' %}
+                                        <span class="badge bg-success">Abgeschlossen</span>
+                                        {% elif rental.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Storniert</span>
+                                        {% elif rental.status == 'active' %}
+                                        <span class="badge bg-warning">Aktiv</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Gebucht</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>€{{ "%.2f"|format(rental.total_cost or 0) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Noch keine Ausleihen vorhanden.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Schnellaktionen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('scooter.create') }}" class="btn btn-primary btn-block">
+                                <i class="bi bi-plus-circle"></i> Neuer Scooter
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('scooter.list') }}" class="btn btn-info btn-block">
+                                <i class="bi bi-list"></i> Scooter verwalten
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('rental.list') }}" class="btn btn-success btn-block">
+                                <i class="bi bi-clock-history"></i> Ausleihen
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('auth.profile') }}" class="btn btn-secondary btn-block">
+                                <i class="bi bi-person"></i> Profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

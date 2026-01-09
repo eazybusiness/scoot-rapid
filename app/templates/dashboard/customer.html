@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Kunden-Dashboard - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-speedometer2"></i> Kunden-Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Active Rental -->
+    {% if active_rental %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock"></i> Aktive Ausleihe
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Scooter:</strong> {{ active_rental.scooter.model }} ({{ active_rental.scooter.license_plate }})</p>
+                            <p><strong>Startzeit:</strong> {{ active_rental.start_time.strftime('%H:%M') }}</p>
+                            <p><strong>Dauer:</strong> {{ active_rental.get_duration_formatted() }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Aktuelle Kosten:</strong> €{{ "%.2f"|format(active_rental.calculate_cost()) }}</p>
+                            <a href="{{ url_for('rental.end', rental_id=active_rental.id) }}" class="btn btn-danger">
+                                <i class="bi bi-stop-circle"></i> Ausleihe beenden
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- User Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamtausleihen</h5>
+                    <h2 class="text-primary">{{ user_stats.total_rentals }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamtausgaben</h5>
+                    <h2 class="text-success">€{{ "%.2f"|format(user_stats.total_spent) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Durchschn. Dauer</h5>
+                    <h2 class="text-info">{{ "%.0f"|format(user_stats.average_duration) }} Min</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Scooters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bicycle"></i> Verfügbare Scooter
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if nearby_scooters %}
+                    <div class="row">
+                        {% for scooter in nearby_scooters %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>{{ scooter.model }}</h6>
+                                    <p class="mb-1">Kennzeichen: {{ scooter.license_plate }}</p>
+                                    <p class="mb-1">Batterie: {{ scooter.battery_level }}%</p>
+                                    <p class="mb-2">Standort: {{ scooter.location }}</p>
+                                    <a href="{{ url_for('rental.start', scooter_id=scooter.id) }}" class="btn btn-success btn-sm">
+                                        <i class="bi bi-play-circle"></i> Ausleihen
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Keine verfügbaren Scooter in Ihrer Nähe.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rental History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Ausleihhistorie
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if rental_history %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Scooter</th>
+                                    <th>Dauer</th>
+                                    <th>Kosten</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in rental_history %}
+                                <tr>
+                                    <td>{{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>{{ rental.scooter.model }} ({{ rental.scooter.license_plate }})</td>
+                                    <td>{{ rental.get_duration_formatted() }}</td>
+                                    <td>€{{ "%.2f"|format(rental.total_cost) }}</td>
+                                    <td>
+                                        {% if rental.status == 'completed' %}
+                                        <span class="badge bg-success">Abgeschlossen</span>
+                                        {% elif rental.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Storniert</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Aktiv</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Noch keine Ausleihen vorhanden.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

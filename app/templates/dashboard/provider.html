@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Anbieter-Dashboard - ScootRapid{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-shop"></i> Anbieter-Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Meine Scooter</h5>
+                    <h2 class="text-primary">{{ total_scooters }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Verfügbar</h5>
+                    <h2 class="text-success">{{ available }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">In Benutzung</h5>
+                    <h2 class="text-warning">{{ in_use }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Gesamtumsatz</h5>
+                    <h2 class="text-info">€{{ "%.2f"|format(total_revenue) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Scooters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bicycle"></i> Meine Scooter
+                    </h5>
+                    <a href="{{ url_for('scooter.create') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Neuer Scooter
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if scooters %}
+                    <div class="row">
+                        {% for scooter in scooters %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ scooter.model }}</h6>
+                                        {% if scooter.status == 'available' %}
+                                        <span class="badge bg-success">Verfügbar</span>
+                                        {% elif scooter.status == 'in_use' %}
+                                        <span class="badge bg-warning">In Benutzung</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Wartung</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="card-text">
+                                        <small class="text-muted">Kennzeichen: {{ scooter.license_plate }}</small><br>
+                                        <small class="text-muted">Batterie: {{ scooter.battery_level }}%</small><br>
+                                        <small class="text-muted">Standort: {{ scooter.location }}</small>
+                                    </p>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('scooter.edit', scooter_id=scooter.id) }}" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{{ url_for('scooter.view', scooter_id=scooter.id) }}" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bicycle display-1 text-muted"></i>
+                        <h5 class="mt-3">Noch keine Scooter</h5>
+                        <p class="text-muted">Fügen Sie Ihren ersten Scooter hinzu, um mit dem Einnahmen zu beginnen.</p>
+                        <a href="{{ url_for('scooter.create') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Erster Scooter
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity"></i> Neueste Aktivität
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_rentals %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Benutzer</th>
+                                    <th>Scooter</th>
+                                    <th>Dauer</th>
+                                    <th>Kosten</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in recent_rentals %}
+                                <tr>
+                                    <td>{{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>{{ rental.user.first_name }} {{ rental.user.last_name }}</td>
+                                    <td>{{ rental.scooter.model }} ({{ rental.scooter.license_plate }})</td>
+                                    <td>{{ rental.get_duration_formatted() }}</td>
+                                    <td>€{{ "%.2f"|format(rental.total_cost or 0) }}</td>
+                                    <td>
+                                        {% if rental.status == 'completed' %}
+                                        <span class="badge bg-success">Abgeschlossen</span>
+                                        {% elif rental.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Storniert</span>
+                                        {% elif rental.status == 'active' %}
+                                        <span class="badge bg-warning">Aktiv</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Gebucht</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Noch keine Aktivität vorhanden.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
