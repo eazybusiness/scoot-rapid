@@ -14,7 +14,8 @@ class Config:
     DB_HOST = os.environ.get('DB_HOST') or 'localhost'
     DB_PORT = os.environ.get('DB_PORT') or '3306'
     
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
     
     # Mail configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
@@ -33,8 +34,11 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    DB_NAME = os.environ.get('DEV_DB_NAME') or 'scoot_rapid_dev'
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
+    # Use environment variable first, then construct from parts
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+    if not SQLALCHEMY_DATABASE_URI:
+        DB_NAME = os.environ.get('DEV_DB_NAME') or 'scoot_rapid_dev'
+        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
 class TestingConfig(Config):
     TESTING = True
