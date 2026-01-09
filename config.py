@@ -34,11 +34,8 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    # Use environment variable first, then construct from parts
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    if not SQLALCHEMY_DATABASE_URI:
-        DB_NAME = os.environ.get('DEV_DB_NAME') or 'railway'
-        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
+    # Force Railway MySQL for all environments
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
 
 class TestingConfig(Config):
     TESTING = True
@@ -47,13 +44,12 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # Railway MySQL database - force DATABASE_URL
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
+    # Force Railway MySQL for all environments
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
 
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
-    'default': DevelopmentConfig
+    'default': ProductionConfig  # Force production config to ensure MySQL
 }
