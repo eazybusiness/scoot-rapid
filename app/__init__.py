@@ -3,6 +3,7 @@ ScootRapid - Flask Application Factory
 Lean E-Scooter Rental Platform
 """
 
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -15,12 +16,20 @@ migrate = Migrate()
 login_manager = LoginManager()
 mail = Mail()
 
-def create_app(config_name='development'):
+def create_app(config_name=None):
     """Application factory pattern"""
     from config import config
     
+    # Use environment variable or default to production
+    if config_name is None:
+        config_name = os.environ.get('FLASK_ENV', 'production')
+    
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    
+    # Debug: Log which config is being used
+    app.logger.info(f"Using config: {config_name}")
+    app.logger.info(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
     
     # Initialize extensions
     db.init_app(app)
@@ -70,6 +79,8 @@ def create_app(config_name='development'):
     # Initialize database tables on startup
     with app.app_context():
         try:
+            # Debug: Log which database URL is being used
+            app.logger.info(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
             db.create_all()
             app.logger.info("Database tables created successfully")
         except Exception as e:
