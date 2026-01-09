@@ -6,6 +6,7 @@ Flask-RESTful==0.3.10
 Flask-Mail==0.9.1
 SQLAlchemy==2.0.19
 PyMySQL==1.1.0
+cryptography==41.0.7
 marshmallow==3.20.1
 WTForms==3.0.1
 Werkzeug==2.3.7
