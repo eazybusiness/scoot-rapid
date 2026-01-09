@@ -148,13 +148,12 @@ def cancel(rental_id):
 @login_required
 def rate(rental_id):
     """Rate a rental"""
-    try:
-        rental = Rental.get_by_id(rental_id)
-    except Rental.DoesNotExist:
+    rental = Rental.query.get(rental_id)
+    if not rental:
         flash('Rental not found', 'danger')
         return redirect(url_for('rentals.list_rentals'))
     
-    if rental.user.id != current_user.id:
+    if rental.user_id != current_user.id:
         flash('You are not authorized to rate this rental', 'danger')
         return redirect(url_for('rentals.detail', rental_id=rental_id))
     

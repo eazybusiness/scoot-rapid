@@ -31,12 +31,12 @@ class UserListResource(Resource):
         role = request.args.get('role')
         limit = request.args.get('limit', 100, type=int)
         
-        query = User.select()
+        query = User.query
         
         if role:
-            query = query.where(User.role == role)
+            query = query.filter_by(role=role)
         
-        users = list(query.limit(limit))
+        users = query.limit(limit).all()
         
         return [u.to_dict() for u in users], 200
 
@@ -44,9 +44,8 @@ class UserResource(Resource):
     @login_required
     def get(self, user_id):
         """Get user by ID"""
-        try:
-            user = User.get_by_id(user_id)
-        except User.DoesNotExist:
+        user = User.query.get(user_id)
+        if not user:
             return {'message': 'User not found'}, 404
         
         if not current_user.is_admin() and current_user.id != user_id:
@@ -78,7 +77,8 @@ class CurrentUserProfileResource(Resource):
             current_user.phone = data['phone']
         
         try:
-            current_user.save()
+            from app import db
+            db.session.commit()
             return current_user.to_dict(include_sensitive=True), 200
         except Exception as e:
             return {'message': f'Error updating profile: {str(e)}'}, 400
@@ -120,7 +120,7 @@ class SearchUsersResource(Resource):
         
         search_pattern = f'%{query_str}%'
         
-        users = list(User.select().where(
+        users = list(User.query.filter(
             (User.email.contains(query_str)) |
             (User.first_name.contains(query_str)) |
             (User.last_name.contains(query_str))

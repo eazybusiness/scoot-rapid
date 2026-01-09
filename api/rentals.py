@@ -35,12 +35,12 @@ class RentalListResource(Resource):
         limit = request.args.get('limit', 100, type=int)
         
         if current_user.is_admin():
-            query = Rental.select()
+            query = Rental.query
         else:
-            query = Rental.select().where(Rental.user == current_user)
+            query = Rental.query.filter(Rental.user == current_user)
         
         if status:
-            query = query.where(Rental.status == status)
+            query = query.filter(Rental.status == status)
         
         rentals = list(query.order_by(Rental.created_at.desc()).limit(limit))
         
@@ -65,7 +65,7 @@ class RentalListResource(Resource):
         
         # Get scooter
         try:
-            scooter = Scooter.get_by_id(data['scooter_id'])
+            scooter = Scooter.query.get(data['scooter_id'])
         except Scooter.DoesNotExist:
             return {'message': 'Scooter not found'}, 404
         
@@ -92,7 +92,7 @@ class RentalResource(Resource):
     def get(self, rental_id):
         """Get rental by ID"""
         try:
-            rental = Rental.get_by_id(rental_id)
+            rental = Rental.query.get(rental_id)
         except Rental.DoesNotExist:
             return {'message': 'Rental not found'}, 404
         
@@ -110,7 +110,7 @@ class EndRentalResource(Resource):
     def post(self, rental_id):
         """End an active rental"""
         try:
-            rental = Rental.get_by_id(rental_id)
+            rental = Rental.query.get(rental_id)
         except Rental.DoesNotExist:
             return {'message': 'Rental not found'}, 404
         
@@ -141,7 +141,7 @@ class CancelRentalResource(Resource):
     def post(self, rental_id):
         """Cancel an active rental"""
         try:
-            rental = Rental.get_by_id(rental_id)
+            rental = Rental.query.get(rental_id)
         except Rental.DoesNotExist:
             return {'message': 'Rental not found'}, 404
         
@@ -165,7 +165,7 @@ class RateRentalResource(Resource):
     def post(self, rental_id):
         """Rate a completed rental"""
         try:
-            rental = Rental.get_by_id(rental_id)
+            rental = Rental.query.get(rental_id)
         except Rental.DoesNotExist:
             return {'message': 'Rental not found'}, 404
         
@@ -188,7 +188,7 @@ class ActiveRentalsResource(Resource):
     def get(self):
         """Get active rentals"""
         if current_user.is_admin():
-            rentals = list(Rental.select().where(Rental.status == 'active'))
+            rentals = list(Rental.query.filter(Rental.status == 'active'))
         else:
             try:
                 rental = Rental.get(

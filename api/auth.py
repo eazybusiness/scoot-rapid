@@ -32,24 +32,22 @@ class LoginResource(Resource):
         except ValidationError as err:
             return {'errors': err.messages}, 400
         
-        try:
-            user = User.get(User.email == data['email'].lower())
-            
-            if not user.is_active:
-                return {'message': 'Account is deactivated'}, 401
-            
-            if not user.check_password(data['password']):
-                return {'message': 'Invalid email or password'}, 401
-            
-            user.update_last_login()
-            
-            return {
-                'message': 'Login successful',
-                'user': user.to_dict()
-            }, 200
-            
-        except User.DoesNotExist:
+        user = User.query.filter_by(email=data['email'].lower()).first()
+        if not user:
             return {'message': 'Invalid email or password'}, 401
+        
+        if not user.is_active:
+            return {'message': 'Account is deactivated'}, 401
+        
+        if not user.check_password(data['password']):
+            return {'message': 'Invalid email or password'}, 401
+        
+        user.update_last_login()
+        
+        return {
+            'message': 'Login successful',
+            'user': user.to_dict()
+        }, 200
 
 class RegisterResource(Resource):
     def post(self):
@@ -60,25 +58,25 @@ class RegisterResource(Resource):
             return {'errors': err.messages}, 400
         
         # Check if user exists
-        try:
-            User.get(User.email == data['email'].lower())
+        existing_user = User.query.filter_by(email=data['email'].lower()).first()
+        if existing_user:
             return {'message': 'User with this email already exists'}, 400
-        except User.DoesNotExist:
-            pass
         
         if len(data['password']) < 8:
             return {'message': 'Password must be at least 8 characters long'}, 400
         
         try:
-            user = User.create(
-                email=data['email'],
+            from app import db
+            user = User(
+                email=data['email'].lower(),
                 first_name=data['first_name'],
                 last_name=data['last_name'],
                 phone=data.get('phone'),
                 role=data.get('role', 'customer')
             )
             user.set_password(data['password'])
-            user.save()
+            db.session.add(user)
+            db.session.commit()
             
             return {
                 'message': 'User registered successfully',

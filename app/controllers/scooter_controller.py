@@ -61,14 +61,13 @@ def create():
             identifier = request.form.get('identifier').upper()
             
             # Check if identifier exists
-            try:
-                Scooter.get(Scooter.identifier == identifier)
+            existing_scooter = Scooter.query.filter_by(identifier=identifier).first()
+            if existing_scooter:
                 flash('Scooter with this identifier already exists', 'danger')
                 return render_template('scooters/create.html')
-            except Scooter.DoesNotExist:
-                pass
             
-            scooter = Scooter.create(
+            from app import db
+            scooter = Scooter(
                 identifier=identifier,
                 model=request.form.get('model'),
                 brand=request.form.get('brand'),
@@ -76,8 +75,10 @@ def create():
                 longitude=float(request.form.get('longitude')),
                 address=request.form.get('address'),
                 battery_level=int(request.form.get('battery_level', 100)),
-                provider=current_user
+                provider_id=current_user.id
             )
+            db.session.add(scooter)
+            db.session.commit()
             
             flash('Scooter created successfully!', 'success')
             return redirect(url_for('scooters.detail', scooter_id=scooter.id))
@@ -92,23 +93,23 @@ def create():
 @login_required
 def edit(scooter_id):
     """Edit scooter"""
-    try:
-        scooter = Scooter.get_by_id(scooter_id)
-    except Scooter.DoesNotExist:
+    scooter = Scooter.query.get(scooter_id)
+    if not scooter:
         flash('Scooter not found', 'danger')
         return redirect(url_for('scooters.list_scooters'))
     
-    if not current_user.is_admin() and scooter.provider.id != current_user.id:
+    if not current_user.is_admin() and scooter.provider_id != current_user.id:
         flash('You are not authorized to edit this scooter', 'danger')
         return redirect(url_for('scooters.detail', scooter_id=scooter_id))
     
     if request.method == 'POST':
         try:
+            from app import db
             scooter.model = request.form.get('model')
             scooter.brand = request.form.get('brand')
             scooter.address = request.form.get('address')
             scooter.battery_level = int(request.form.get('battery_level'))
-            scooter.save()
+            db.session.commit()
             
             flash('Scooter updated successfully!', 'success')
             return redirect(url_for('scooters.detail', scooter_id=scooter_id))
@@ -122,13 +123,12 @@ def edit(scooter_id):
 @login_required
 def delete(scooter_id):
     """Delete scooter"""
-    try:
-        scooter = Scooter.get_by_id(scooter_id)
-    except Scooter.DoesNotExist:
+    scooter = Scooter.query.get(scooter_id)
+    if not scooter:
         flash('Scooter not found', 'danger')
         return redirect(url_for('scooters.list_scooters'))
     
-    if not current_user.is_admin() and scooter.provider.id != current_user.id:
+    if not current_user.is_admin() and scooter.provider_id != current_user.id:
         flash('You are not authorized to delete this scooter', 'danger')
         return redirect(url_for('scooters.detail', scooter_id=scooter_id))
     
@@ -137,7 +137,9 @@ def delete(scooter_id):
         return redirect(url_for('scooters.detail', scooter_id=scooter_id))
     
     try:
-        scooter.delete_instance()
+        from app import db
+        db.session.delete(scooter)
+        db.session.commit()
         flash('Scooter deleted successfully!', 'success')
         return redirect(url_for('scooters.list_scooters'))
     except Exception as e:
@@ -148,20 +150,21 @@ def delete(scooter_id):
 @login_required
 def update_status(scooter_id):
     """Update scooter status"""
-    try:
-        scooter = Scooter.get_by_id(scooter_id)
-    except Scooter.DoesNotExist:
+    scooter = Scooter.query.get(scooter_id)
+    if not scooter:
         flash('Scooter not found', 'danger')
         return redirect(url_for('scooters.list_scooters'))
     
-    if not current_user.is_admin() and scooter.provider.id != current_user.id:
+    if not current_user.is_admin() and scooter.provider_id != current_user.id:
         flash('You are not authorized to update this scooter', 'danger')
         return redirect(url_for('scooters.detail', scooter_id=scooter_id))
     
     status = request.form.get('status')
     
     try:
+        from app import db
         scooter.set_status(status)
+        db.session.commit()
         flash('Status updated successfully!', 'success')
     except Exception as e:
         flash(f'Error updating status: {str(e)}', 'danger')

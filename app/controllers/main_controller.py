@@ -56,10 +56,7 @@ def provider_dashboard():
     
     recent_rentals = []
     for scooter in scooters[:10]:
-        rentals = list(Rental.select()
-                      .where(Rental.scooter == scooter)
-                      .order_by(Rental.created_at.desc())
-                      .limit(5))
+        rentals = Rental.query.filter_by(scooter_id=scooter.id).order_by(Rental.created_at.desc()).limit(5).all()
         recent_rentals.extend(rentals)
     
     recent_rentals = sorted(recent_rentals, key=lambda r: r.created_at, reverse=True)[:10]

@@ -27,10 +27,10 @@ class ScooterListResource(Resource):
         status = request.args.get('status')
         limit = request.args.get('limit', 100, type=int)
         
-        query = Scooter.select()
+        query = Scooter.query
         
         if status:
-            query = query.where(Scooter.status == status)
+            query = query.filter(Scooter.status == status)
         
         scooters = list(query.limit(limit))
         
@@ -78,7 +78,7 @@ class ScooterResource(Resource):
     def get(self, scooter_id):
         """Get scooter by ID"""
         try:
-            scooter = Scooter.get_by_id(scooter_id)
+            scooter = Scooter.query.get(scooter_id)
         except Scooter.DoesNotExist:
             return {'message': 'Scooter not found'}, 404
         
@@ -90,7 +90,7 @@ class ScooterResource(Resource):
     def put(self, scooter_id):
         """Update scooter"""
         try:
-            scooter = Scooter.get_by_id(scooter_id)
+            scooter = Scooter.query.get(scooter_id)
         except Scooter.DoesNotExist:
             return {'message': 'Scooter not found'}, 404
         
@@ -115,7 +115,7 @@ class ScooterResource(Resource):
     def delete(self, scooter_id):
         """Delete scooter"""
         try:
-            scooter = Scooter.get_by_id(scooter_id)
+            scooter = Scooter.query.get(scooter_id)
         except Scooter.DoesNotExist:
             return {'message': 'Scooter not found'}, 404
         
@@ -137,7 +137,7 @@ class AvailableScootersResource(Resource):
         """Get available scooters"""
         limit = request.args.get('limit', 100, type=int)
         
-        scooters = list(Scooter.select().where(
+        scooters = list(Scooter.query.filter(
             (Scooter.status == 'available') & (Scooter.battery_level > 15)
         ).limit(limit))
         
@@ -159,7 +159,7 @@ class NearbyScootersResource(Resource):
         lat_delta = radius / 111.0
         lon_delta = radius / (111.0 * abs(latitude))
         
-        scooters = list(Scooter.select().where(
+        scooters = list(Scooter.query.filter(
             (Scooter.latitude.between(latitude - lat_delta, latitude + lat_delta)) &
             (Scooter.longitude.between(longitude - lon_delta, longitude + lon_delta)) &
             (Scooter.status == 'available')
