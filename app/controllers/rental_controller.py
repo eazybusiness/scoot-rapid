@@ -13,12 +13,9 @@ from app.models.scooter import Scooter
 def list_rentals():
     """List rentals"""
     if current_user.is_admin():
-        rentals = list(Rental.select().order_by(Rental.created_at.desc()).limit(50))
+        rentals = Rental.query.order_by(Rental.created_at.desc()).limit(50).all()
     else:
-        rentals = list(Rental.select()
-                      .where(Rental.user == current_user)
-                      .order_by(Rental.created_at.desc())
-                      .limit(50))
+        rentals = Rental.query.filter_by(user_id=current_user.id).order_by(Rental.created_at.desc()).limit(50).all()
     
     return render_template('rentals/list.html', rentals=rentals)
 
@@ -26,15 +23,14 @@ def list_rentals():
 @login_required
 def detail(rental_id):
     """Rental detail page"""
-    try:
-        rental = Rental.get_by_id(rental_id)
-    except Rental.DoesNotExist:
+    rental = Rental.query.get(rental_id)
+    if not rental:
         flash('Rental not found', 'danger')
         return redirect(url_for('rentals.list_rentals'))
     
     # Check access
-    if not current_user.is_admin() and rental.user.id != current_user.id:
-        if not (current_user.is_provider() and rental.scooter.provider.id == current_user.id):
+    if not current_user.is_admin() and rental.user_id != current_user.id:
+        if not (current_user.is_provider() and rental.scooter.provider_id == current_user.id):
             flash('You are not authorized to view this rental', 'danger')
             return redirect(url_for('rentals.list_rentals'))
     
@@ -44,9 +40,8 @@ def detail(rental_id):
 @login_required
 def start(scooter_id):
     """Start a rental"""
-    try:
-        scooter = Scooter.get_by_id(scooter_id)
-    except Scooter.DoesNotExist:
+    scooter = Scooter.query.get(scooter_id)
+    if not scooter:
         flash('Scooter not found', 'danger')
         return redirect(url_for('scooters.available'))
     
@@ -55,28 +50,30 @@ def start(scooter_id):
         return redirect(url_for('scooters.detail', scooter_id=scooter_id))
     
     # Check if user has active rental
-    try:
-        active_rental = Rental.get(
-            (Rental.user == current_user) & (Rental.status == 'active')
-        )
+    active_rental = Rental.query.filter_by(
+        user_id=current_user.id, 
+        status='active'
+    ).first()
+    if active_rental:
         flash('You already have an active rental', 'danger')
         return redirect(url_for('rentals.detail', rental_id=active_rental.id))
-    except Rental.DoesNotExist:
-        pass
     
     if request.method == 'POST':
         try:
+            from app import db
             latitude = float(request.form.get('latitude', scooter.latitude))
             longitude = float(request.form.get('longitude', scooter.longitude))
             
-            rental = Rental.create(
-                user=current_user,
-                scooter=scooter,
+            rental = Rental(
+                user_id=current_user.id,
+                scooter_id=scooter.id,
                 start_latitude=latitude,
                 start_longitude=longitude
             )
             
             rental.start_rental()
+            db.session.add(rental)
+            db.session.commit()
             
             flash('Rental started successfully!', 'success')
             return redirect(url_for('rentals.detail', rental_id=rental.id))
@@ -91,9 +88,8 @@ def start(scooter_id):
 @login_required
 def end(rental_id):
     """End a rental"""
-    try:
-        rental = Rental.get_by_id(rental_id)
-    except Rental.DoesNotExist:
+    rental = Rental.query.get(rental_id)
+    if not rental:
         flash('Rental not found', 'danger')
         return redirect(url_for('rentals.list_rentals'))
     
@@ -101,15 +97,17 @@ def end(rental_id):
         flash('Rental is not active', 'danger')
         return redirect(url_for('rentals.detail', rental_id=rental_id))
     
-    if not current_user.is_admin() and rental.user.id != current_user.id:
+    if not current_user.is_admin() and rental.user_id != current_user.id:
         flash('You are not authorized to end this rental', 'danger')
         return redirect(url_for('rentals.detail', rental_id=rental_id))
     
     try:
+        from app import db
         latitude = request.form.get('latitude', type=float)
         longitude = request.form.get('longitude', type=float)
         
         rental.end_rental(latitude, longitude)
+        db.session.commit()
         
         flash('Rental ended successfully!', 'success')
     except Exception as e:
@@ -121,9 +119,8 @@ def end(rental_id):
 @login_required
 def cancel(rental_id):
     """Cancel a rental"""
-    try:
-        rental = Rental.get_by_id(rental_id)
-    except Rental.DoesNotExist:
+    rental = Rental.query.get(rental_id)
+    if not rental:
         flash('Rental not found', 'danger')
         return redirect(url_for('rentals.list_rentals'))
     
@@ -131,13 +128,15 @@ def cancel(rental_id):
         flash('Only active rentals can be cancelled', 'danger')
         return redirect(url_for('rentals.detail', rental_id=rental_id))
     
-    if not current_user.is_admin() and rental.user.id != current_user.id:
+    if not current_user.is_admin() and rental.user_id != current_user.id:
         flash('You are not authorized to cancel this rental', 'danger')
         return redirect(url_for('rentals.detail', rental_id=rental_id))
     
     try:
+        from app import db
         reason = request.form.get('reason')
         rental.cancel_rental(reason)
+        db.session.commit()
         
         flash('Rental cancelled', 'info')
     except Exception as e:

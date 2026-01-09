@@ -11,11 +11,11 @@ from app.models.rental import Rental
 @scooter_bp.route('/')
 @login_required
 def list_scooters():
-    """List scooters"""
-    if current_user.is_provider():
-        scooters = list(Scooter.select().where(Scooter.provider == current_user))
+    """List all scooters"""
+    if current_user.role == 'provider':
+        scooters = Scooter.query.filter_by(provider_id=current_user.id).all()
     else:
-        scooters = list(Scooter.select().limit(50))
+        scooters = Scooter.query.limit(50).all()
     
     return render_template('scooters/list.html', scooters=scooters)
 
@@ -23,9 +23,10 @@ def list_scooters():
 @login_required
 def available():
     """List available scooters"""
-    scooters = list(Scooter.select().where(
-        (Scooter.status == 'available') & (Scooter.battery_level > 15)
-    ).limit(50))
+    scooters = Scooter.query.filter(
+        Scooter.status == 'available',
+        Scooter.battery_level > 15
+    ).limit(50).all()
     
     return render_template('scooters/available.html', scooters=scooters)
 
@@ -33,16 +34,15 @@ def available():
 @login_required
 def detail(scooter_id):
     """Scooter detail page"""
-    try:
-        scooter = Scooter.get_by_id(scooter_id)
-    except Scooter.DoesNotExist:
+    scooter = Scooter.query.get(scooter_id)
+    if not scooter:
         flash('Scooter not found', 'danger')
         return redirect(url_for('scooters.list_scooters'))
     
     stats = {
         'total_revenue': scooter.get_total_revenue(),
         'utilization_rate': scooter.get_utilization_rate(),
-        'rental_count': Rental.select().where(Rental.scooter == scooter).count(),
+        'rental_count': Rental.query.filter_by(scooter_id=scooter.id).count(),
         'needs_maintenance': scooter.needs_maintenance()
     }
     
