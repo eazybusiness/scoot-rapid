@@ -60,6 +60,12 @@ class User(UserMixin, db.Model):
     def can_manage_scooters(self):
         return self.role in ['admin', 'provider']
     
+    def update_last_login(self):
+        """Update last login timestamp"""
+        from datetime import datetime
+        self.last_login = datetime.utcnow()
+        db.session.commit()
+    
     def get_stats(self):
         total_rentals = self.rentals.count()
         completed_rentals = self.rentals.filter_by(status='completed').all()

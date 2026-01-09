@@ -6,6 +6,7 @@ from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app.controllers import auth_bp
 from app.models.user import User
+from app import db
 
 @auth_bp.route('/')
 def index():
@@ -24,27 +25,27 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        try:
-            user = User.get(User.email == email.lower())
-            
-            if not user.is_active:
-                flash('Account is deactivated', 'danger')
-                return render_template('auth/login.html')
-            
-            if not user.check_password(password):
-                flash('Invalid email or password', 'danger')
-                return render_template('auth/login.html')
-            
-            user.update_last_login()
-            login_user(user)
-            flash('Login successful!', 'success')
-            
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
-            
-        except User.DoesNotExist:
+        # Find user by email (SQLAlchemy syntax)
+        user = User.query.filter_by(email=email.lower()).first()
+        
+        if not user:
             flash('Invalid email or password', 'danger')
             return render_template('auth/login.html')
+        
+        if not user.is_active:
+            flash('Account is deactivated', 'danger')
+            return render_template('auth/login.html')
+        
+        if not user.check_password(password):
+            flash('Invalid email or password', 'danger')
+            return render_template('auth/login.html')
+        
+        user.update_last_login()
+        login_user(user)
+        flash('Login successful!', 'success')
+        
+        next_page = request.args.get('next')
+        return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
     
     return render_template('auth/login.html')
 
@@ -66,23 +67,23 @@ def register():
             flash('Password must be at least 8 characters long', 'danger')
             return render_template('auth/register.html')
         
-        try:
-            User.get(User.email == email.lower())
+        # Check if user already exists (SQLAlchemy syntax)
+        existing_user = User.query.filter_by(email=email.lower()).first()
+        if existing_user:
             flash('User with this email already exists', 'danger')
             return render_template('auth/register.html')
-        except User.DoesNotExist:
-            pass
         
         try:
-            user = User.create(
-                email=email,
+            user = User(
+                email=email.lower(),
                 first_name=first_name,
                 last_name=last_name,
                 phone=phone,
                 role=role
             )
             user.set_password(password)
-            user.save()
+            db.session.add(user)
+            db.session.commit()
             
             login_user(user)
             flash('Registration successful!', 'success')
@@ -110,7 +111,7 @@ def profile():
         current_user.first_name = request.form.get('first_name')
         current_user.last_name = request.form.get('last_name')
         current_user.phone = request.form.get('phone')
-        current_user.save()
+        db.session.commit()
         
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('auth.profile'))
@@ -139,7 +140,7 @@ def change_password():
             return render_template('auth/change_password.html')
         
         current_user.set_password(new_password)
-        current_user.save()
+        db.session.commit()
         
         flash('Password changed successfully!', 'success')
         return redirect(url_for('auth.profile'))
