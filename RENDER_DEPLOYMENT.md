@@ -1,40 +1,11 @@
-# Render.com Deployment Guide - ScootRapid
+# Render.com Deployment Guide - ScootRapid (FREE TIER)
 
 ## Prerequisites
 - GitHub account connected to Render.com
 - Repository: https://github.com/eazybusiness/scoot-rapid
+- **NO payment information required** - 100% Free Tier
 
-## Automatic Deployment (Recommended)
-
-Render.com will automatically detect the `render.yaml` file and set up:
-- MySQL database (free tier)
-- Web service with Python environment
-- Environment variables
-
-### Steps:
-
-1. **Go to Render Dashboard**
-   - Visit: https://dashboard.render.com/
-
-2. **Create New Blueprint**
-   - Click "New +" → "Blueprint"
-   - Connect GitHub repository: `eazybusiness/scoot-rapid`
-   - Branch: `main`
-   - Render will detect `render.yaml` automatically
-
-3. **Review Configuration**
-   - Service Name: `scoot-rapid`
-   - Database: `scoot-rapid-db` (MySQL)
-   - Environment: Production
-   - Auto-deploy: Enabled
-
-4. **Deploy**
-   - Click "Apply"
-   - Wait for deployment (5-10 minutes)
-   - Database will be created automatically
-   - Tables will be created on first run
-
-## Manual Deployment (Alternative)
+## Free Tier Deployment Steps
 
 ### Step 1: Create MySQL Database
 
@@ -65,15 +36,24 @@ Render.com will automatically detect the `render.yaml` file and set up:
 
 ### Step 3: Environment Variables
 
-Add these environment variables in Render dashboard:
+Add these environment variables in Render dashboard (Settings → Environment):
+
+**IMPORTANT**: Use the **Internal Database URL** from Step 1!
 
 ```
 FLASK_APP=wsgi.py
 FLASK_ENV=production
-SECRET_KEY=<generate-random-string>
-SQLALCHEMY_DATABASE_URI=<paste-internal-database-url>
+SECRET_KEY=your-secret-key-here-change-this
+SQLALCHEMY_DATABASE_URI=<PASTE-INTERNAL-DATABASE-URL-HERE>
 BASE_PRICE_PER_MINUTE=0.30
 START_FEE=1.50
+PYTHON_VERSION=3.11.0
+```
+
+**To generate secure keys**, use Python:
+```python
+import secrets
+print(secrets.token_urlsafe(32))
 ```
 
 ### Step 4: Deploy
