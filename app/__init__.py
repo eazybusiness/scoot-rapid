@@ -84,9 +84,11 @@ def create_app(config_name=None):
             db.create_all()
             app.logger.info("Database tables created successfully")
         except Exception as e:
-            # Ignore duplicate ENUM type errors (happens on redeploy)
-            if "duplicate key value violates unique constraint" not in str(e):
+            # Ignore duplicate table and ENUM type errors (happens on redeploy)
+            if "already exists" not in str(e) and "duplicate key value violates unique constraint" not in str(e):
                 app.logger.error(f"Database initialization error: {e}")
+            else:
+                app.logger.info("Database tables already exist - skipping creation")
     
     # CLI commands
     @app.cli.command()

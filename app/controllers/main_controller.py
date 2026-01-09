@@ -5,6 +5,7 @@ Main dashboard controller for ScootRapid
 from flask import render_template
 from flask_login import login_required, current_user
 from app.controllers import main_bp
+from app.models.user import User
 from app.models.scooter import Scooter
 from app.models.rental import Rental
 
@@ -21,18 +22,16 @@ def dashboard():
 
 def admin_dashboard():
     """Admin dashboard"""
-    total_users = User.select().count()
-    total_scooters = Scooter.select().count()
-    total_rentals = Rental.select().count()
-    active_rentals = Rental.select().where(Rental.status == 'active').count()
+    total_users = User.query.count()
+    total_scooters = Scooter.query.count()
+    total_rentals = Rental.query.count()
+    active_rentals = Rental.query.filter_by(status='active').count()
     
-    recent_rentals = list(Rental.select()
-                         .order_by(Rental.created_at.desc())
-                         .limit(10))
+    recent_rentals = Rental.query.order_by(Rental.created_at.desc()).limit(10).all()
     
-    available_scooters = Scooter.select().where(Scooter.status == 'available').count()
-    in_use_scooters = Scooter.select().where(Scooter.status == 'in_use').count()
-    maintenance_scooters = Scooter.select().where(Scooter.status == 'maintenance').count()
+    available_scooters = Scooter.query.filter_by(status='available').count()
+    in_use_scooters = Scooter.query.filter_by(status='in_use').count()
+    maintenance_scooters = Scooter.query.filter_by(status='maintenance').count()
     
     return render_template('dashboard/admin.html',
                          total_users=total_users,
@@ -46,7 +45,7 @@ def admin_dashboard():
 
 def provider_dashboard():
     """Provider dashboard"""
-    scooters = list(Scooter.select().where(Scooter.provider == current_user))
+    scooters = Scooter.query.filter_by(provider_id=current_user.id).all()
     
     total_scooters = len(scooters)
     available = len([s for s in scooters if s.status == 'available'])
@@ -76,23 +75,23 @@ def provider_dashboard():
 
 def customer_dashboard():
     """Customer dashboard"""
-    try:
-        active_rental = Rental.get(
-            (Rental.user == current_user) & (Rental.status == 'active')
-        )
-    except Rental.DoesNotExist:
-        active_rental = None
+    # Get active rental (SQLAlchemy syntax)
+    active_rental = Rental.query.filter_by(
+        user_id=current_user.id, 
+        status='active'
+    ).first()
     
-    rental_history = list(Rental.select()
-                         .where(Rental.user == current_user)
-                         .order_by(Rental.created_at.desc())
-                         .limit(10))
+    # Get rental history (SQLAlchemy syntax)
+    rental_history = Rental.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Rental.created_at.desc()).limit(10).all()
     
     user_stats = current_user.get_stats()
     
-    nearby_scooters = list(Scooter.select()
-                          .where(Scooter.status == 'available')
-                          .limit(10))
+    # Get available scooters (SQLAlchemy syntax)
+    nearby_scooters = Scooter.query.filter_by(
+        status='available'
+    ).limit(10).all()
     
     return render_template('dashboard/customer.html',
                          active_rental=active_rental,
