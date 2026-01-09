@@ -8,10 +8,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Database configuration for MySQL with SQLAlchemy
-    DB_NAME = os.environ.get('DB_NAME') or 'scoot_rapid'
+    DB_NAME = os.environ.get('DB_NAME') or 'railway'
     DB_USER = os.environ.get('DB_USER') or 'root'
-    DB_PASSWORD = os.environ.get('DB_PASSWORD') or ''
-    DB_HOST = os.environ.get('DB_HOST') or 'localhost'
+    DB_PASSWORD = os.environ.get('DB_PASSWORD') or 'INeEpewDMEAZLhrFlBrMkpPDTamfdqXb'
+    DB_HOST = os.environ.get('DB_HOST') or 'mysql.railway.internal'
     DB_PORT = os.environ.get('DB_PORT') or '3306'
     
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
@@ -37,7 +37,7 @@ class DevelopmentConfig(Config):
     # Use environment variable first, then construct from parts
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
     if not SQLALCHEMY_DATABASE_URI:
-        DB_NAME = os.environ.get('DEV_DB_NAME') or 'scoot_rapid_dev'
+        DB_NAME = os.environ.get('DEV_DB_NAME') or 'railway'
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
 class TestingConfig(Config):
