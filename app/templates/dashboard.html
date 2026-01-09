@@ -28,7 +28,7 @@
             <p class="text-gray-600">Gestartet: {{ active_rental.start_time.strftime('%d.%m.%Y %H:%M') }}</p>
             <p class="text-gray-600">Dauer: {{ active_rental.get_duration_minutes() }} Minuten</p>
             <div class="mt-4">
-                <a href="{{ url_for('rentals.rental_detail', rental_id=active_rental.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">Details anzeigen</a>
+                <a href="{{ url_for('rentals.detail', rental_id=active_rental.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">Details anzeigen</a>
             </div>
         </div>
         {% else %}
@@ -64,7 +64,7 @@
                         </td>
                         <td class="px-4 py-2">{{ scooter.battery_level }}%</td>
                         <td class="px-4 py-2">
-                            <a href="{{ url_for('scooters.scooter_detail', scooter_id=scooter.id) }}" class="text-blue-600 hover:underline">Details</a>
+                            <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="text-blue-600 hover:underline">Details</a>
                         </td>
                     </tr>
                     {% endfor %}

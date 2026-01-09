@@ -47,8 +47,8 @@
                 {% endif %}
                 
                 <div class="flex space-x-2">
-                    <a href="{{ url_for('scooters.scooter_detail', scooter_id=scooter.id) }}" class="flex-1 bg-gray-200 text-center py-2 rounded-lg hover:bg-gray-300 transition">Details</a>
-                    <a href="{{ url_for('rentals.start_rental', scooter_id=scooter.id) }}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition">Jetzt mieten</a>
+                    <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="flex-1 bg-gray-200 text-center py-2 rounded-lg hover:bg-gray-300 transition">Details</a>
+                    <a href="{{ url_for('rentals.start', scooter_id=scooter.id) }}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition">Jetzt mieten</a>
                 </div>
             </div>
         </div>

@@ -31,7 +31,7 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Aktuelle Kosten:</strong> €{{ "%.2f"|format(active_rental.calculate_cost()) }}</p>
-                            <a href="{{ url_for('rental.end', rental_id=active_rental.id) }}" class="btn btn-danger">
+                            <a href="{{ url_for('rentals.end', rental_id=active_rental.id) }}" class="btn btn-danger">
                                 <i class="bi bi-stop-circle"></i> Ausleihe beenden
                             </a>
                         </div>
@@ -90,7 +90,7 @@
                                     <p class="mb-1">Kennzeichen: {{ scooter.license_plate }}</p>
                                     <p class="mb-1">Batterie: {{ scooter.battery_level }}%</p>
                                     <p class="mb-2">Standort: {{ scooter.location }}</p>
-                                    <a href="{{ url_for('rental.start', scooter_id=scooter.id) }}" class="btn btn-success btn-sm">
+                                    <a href="{{ url_for('rentals.start', scooter_id=scooter.id) }}" class="btn btn-success btn-sm">
                                         <i class="bi bi-play-circle"></i> Ausleihen
                                     </a>
                                 </div>

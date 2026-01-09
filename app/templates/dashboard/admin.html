@@ -148,17 +148,17 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-2">
-                            <a href="{{ url_for('scooter.create') }}" class="btn btn-primary btn-block">
+                            <a href="{{ url_for('scooters.create') }}" class="btn btn-primary btn-block">
                                 <i class="bi bi-plus-circle"></i> Neuer Scooter
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <a href="{{ url_for('scooter.list') }}" class="btn btn-info btn-block">
+                            <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-info btn-block">
                                 <i class="bi bi-list"></i> Scooter verwalten
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <a href="{{ url_for('rental.list') }}" class="btn btn-success btn-block">
+                            <a href="{{ url_for('rentals.list_rentals') }}" class="btn btn-success btn-block">
                                 <i class="bi bi-clock-history"></i> Ausleihen
                             </a>
                         </div>

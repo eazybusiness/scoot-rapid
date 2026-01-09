@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold">Alle Scooter</h2>
         {% if current_user.can_manage_scooters() %}
-        <a href="{{ url_for('scooters.create_scooter') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Neuer Scooter</a>
+        <a href="{{ url_for('scooters.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Neuer Scooter</a>
         {% endif %}
     </div>
     
@@ -34,9 +34,9 @@
                 </div>
                 
                 <div class="flex space-x-2">
-                    <a href="{{ url_for('scooters.scooter_detail', scooter_id=scooter.id) }}" class="flex-1 bg-gray-200 text-center py-2 rounded-lg hover:bg-gray-300">Details</a>
+                    <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="flex-1 bg-gray-200 text-center py-2 rounded-lg hover:bg-gray-300">Details</a>
                     {% if current_user.is_customer() and scooter.is_available() %}
-                    <a href="{{ url_for('rentals.start_rental', scooter_id=scooter.id) }}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700">Mieten</a>
+                    <a href="{{ url_for('rentals.start', scooter_id=scooter.id) }}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700">Mieten</a>
                     {% endif %}
                 </div>
             </div>
