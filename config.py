@@ -47,8 +47,9 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # Railway MySQL database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    # Railway MySQL database - force DATABASE_URL
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
 
 config = {
     'development': DevelopmentConfig,
