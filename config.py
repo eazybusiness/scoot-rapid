@@ -47,8 +47,9 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    DB_NAME = os.environ.get('PROD_DB_NAME') or 'scoot_rapid_prod'
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
+    # Railway.com provides DATABASE_URL automatically
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{Config.DB_NAME}?charset=utf8mb4"
 
 config = {
     'development': DevelopmentConfig,
