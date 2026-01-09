@@ -35,7 +35,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     # Force Railway MySQL for all environments
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
 
 class TestingConfig(Config):
     TESTING = True
@@ -45,7 +45,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # Force Railway MySQL for all environments
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:INeEpewDMEAZLhrFlBrMkpPDTamfdqXb@mysql.railway.internal:3306/railway'
 
 config = {
     'development': DevelopmentConfig,
