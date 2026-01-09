@@ -1,5 +1,5 @@
 """
-Database models for ScootRapid using Peewee ORM
+ScootRapid Models
 """
 
 from .user import User

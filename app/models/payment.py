@@ -1,229 +1,124 @@
 """
-Payment model for ScootRapid using Peewee ORM
+Payment model for ScootRapid using SQLAlchemy
 """
 
 from datetime import datetime
-from peewee import *
 from app import db
 
-class Payment(Model):
-    """Payment model for rental transactions"""
+class Payment(db.Model):
+    __tablename__ = 'payments'
     
-    transaction_id = CharField(unique=True, null=False, index=True)
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
     
-    # Payment relationships
-    user = ForeignKeyField(User, backref='payments', null=False)
-    rental = ForeignKeyField(Rental, backref='payments', null=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    rental_id = db.Column(db.Integer, db.ForeignKey('rentals.id'), nullable=False, index=True)
     
-    # Payment details
-    amount = DecimalField(max_digits=10, decimal_places=2, null=False)
-    currency = CharField(default='EUR', null=False)
-    payment_method = CharField(
-        choices=[
-            ('credit_card', 'Credit Card'),
-            ('paypal', 'PayPal'),
-            ('bank_transfer', 'Bank Transfer'),
-            ('cash', 'Cash')
-        ],
-        null=False
-    )
+    amount = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(3), default='EUR', nullable=False)
     
-    # Payment status
-    status = CharField(
-        choices=[
-            ('pending', 'Pending'),
-            ('processing', 'Processing'),
-            ('completed', 'Completed'),
-            ('failed', 'Failed'),
-            ('refunded', 'Refunded')
-        ],
-        default='pending',
-        null=False,
-        index=True
-    )
+    payment_method = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='pending', index=True)
     
-    # Payment gateway information (stored in JSON for flexibility)
-    gateway_data = JSONField(default=dict)
+    gateway_transaction_id = db.Column(db.String(255))
     
-    # Refund information
-    refund_amount = DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    refund_reason = TextField(null=True)
-    refund_date = DateTimeField(null=True)
+    refund_amount = db.Column(db.Float, default=0.0)
+    refund_reason = db.Column(db.Text)
+    refunded_at = db.Column(db.DateTime)
     
-    # Timestamps
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
-    processed_at = DateTimeField(null=True)
-    
-    # Additional metadata
-    metadata = JSONField(default=dict)
-    
-    class Meta:
-        database = db
-        table_name = 'payments'
-        indexes = (
-            (('user', 'status'), True),
-            (('rental',), True),
-            (('created_at',), False),
-        )
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    processed_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(self, 'transaction_id') or not self.transaction_id:
-            self.transaction_id = self.generate_transaction_id()
-    
-    def save(self, force_insert=False, only=None):
-        """Override save to update timestamps and validate"""
-        self.updated_at = datetime.utcnow()
-        
-        # Validate amounts
-        if self.amount < 0:
-            raise ValueError('Amount cannot be negative')
-        if self.refund_amount < 0:
-            raise ValueError('Refund amount cannot be negative')
-        
-        return super().save(force_insert, only)
-    
-    def generate_transaction_id(self):
-        """Generate unique transaction ID"""
-        import uuid
-        return f"SR-PAY-{uuid.uuid4().hex[:12].upper()}"
+        super(Payment, self).__init__(**kwargs)
+        if not self.transaction_id:
+            self.transaction_id = f"PAY-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.user_id}"
     
     def process_payment(self, gateway_transaction_id=None, gateway_response=None):
-        """Mark payment as processing"""
+        if self.status != 'pending':
+            raise ValueError(f"Cannot process payment with status: {self.status}")
+        
         self.status = 'processing'
-        self.processed_at = datetime.utcnow()
         
         if gateway_transaction_id:
-            self.gateway_data['gateway_transaction_id'] = gateway_transaction_id
-        if gateway_response:
-            self.gateway_data['gateway_response'] = gateway_response
+            self.gateway_transaction_id = gateway_transaction_id
         
-        self.save()
+        db.session.commit()
     
     def complete_payment(self, gateway_transaction_id=None, gateway_response=None):
-        """Mark payment as completed"""
+        if self.status == 'completed':
+            raise ValueError("Payment is already completed")
+        
         self.status = 'completed'
         self.processed_at = datetime.utcnow()
         
         if gateway_transaction_id:
-            self.gateway_data['gateway_transaction_id'] = gateway_transaction_id
-        if gateway_response:
-            self.gateway_data['gateway_response'] = gateway_response
+            self.gateway_transaction_id = gateway_transaction_id
         
-        self.save()
+        db.session.commit()
     
     def fail_payment(self, gateway_response=None):
-        """Mark payment as failed"""
         self.status = 'failed'
         self.processed_at = datetime.utcnow()
-        
-        if gateway_response:
-            self.gateway_data['gateway_response'] = gateway_response
-        
-        self.save()
+        db.session.commit()
     
     def refund_payment(self, refund_amount=None, reason=None):
-        """Process refund"""
         if self.status != 'completed':
-            raise ValueError("Only completed payments can be refunded")
+            raise ValueError("Can only refund completed payments")
         
         if refund_amount is None:
-            refund_amount = self.amount
+            refund_amount = self.amount - self.refund_amount
         
-        if refund_amount > self.amount:
-            raise ValueError("Refund amount cannot exceed payment amount")
+        if refund_amount <= 0:
+            raise ValueError("Refund amount must be greater than 0")
         
-        self.refund_amount = refund_amount
+        if self.refund_amount + refund_amount > self.amount:
+            raise ValueError("Refund amount exceeds payment amount")
+        
+        self.refund_amount += refund_amount
         self.refund_reason = reason
-        self.refund_date = datetime.utcnow()
+        self.refunded_at = datetime.utcnow()
         
-        if refund_amount >= self.amount:
+        if self.refund_amount >= self.amount:
             self.status = 'refunded'
         
-        self.save()
+        db.session.commit()
     
     def is_refundable(self):
-        """Check if payment can be refunded"""
-        return (self.status == 'completed' and 
-                self.refund_amount < self.amount and
-                (datetime.utcnow() - self.created_at).days <= 30)  # 30-day refund window
-    
-    def get_refundable_amount(self):
-        """Get amount that can be refunded"""
-        if not self.is_refundable():
-            return 0.0
-        return float(self.amount - self.refund_amount)
-    
-    def get_payment_method_display(self):
-        """Get display name for payment method"""
-        method_names = {
-            'credit_card': 'Credit Card',
-            'paypal': 'PayPal',
-            'bank_transfer': 'Bank Transfer',
-            'cash': 'Cash'
-        }
-        return method_names.get(self.payment_method, self.payment_method)
-    
-    def get_status_display(self):
-        """Get display name for status"""
-        status_names = {
-            'pending': 'Pending',
-            'processing': 'Processing',
-            'completed': 'Completed',
-            'failed': 'Failed',
-            'refunded': 'Refunded'
-        }
-        return status_names.get(self.status, self.status)
-    
-    def add_metadata(self, key, value):
-        """Add metadata entry"""
-        self.metadata[key] = value
-        self.save()
-    
-    def get_gateway_info(self):
-        """Get gateway information"""
-        return {
-            'gateway_transaction_id': self.gateway_data.get('gateway_transaction_id'),
-            'gateway_response': self.gateway_data.get('gateway_response'),
-            'gateway_error': self.gateway_data.get('gateway_error')
-        }
+        if self.status != 'completed':
+            return False
+        
+        if self.refund_amount >= self.amount:
+            return False
+        
+        days_since_payment = (datetime.utcnow() - self.created_at).days
+        return days_since_payment <= 30
     
     def to_dict(self, include_sensitive=False):
-        """Convert payment to dictionary"""
         data = {
             'id': self.id,
             'transaction_id': self.transaction_id,
-            'user_id': self.user.id,
-            'rental_id': self.rental.id,
+            'user_id': self.user_id,
+            'rental_id': self.rental_id,
             'amount': float(self.amount),
             'currency': self.currency,
             'payment_method': self.payment_method,
-            'payment_method_display': self.get_payment_method_display(),
             'status': self.status,
-            'status_display': self.get_status_display(),
-            'created_at': self.created_at.isoformat(),
-            'processed_at': self.processed_at.isoformat() if self.processed_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
         
         if include_sensitive:
             data.update({
-                'gateway_info': self.get_gateway_info(),
+                'gateway_transaction_id': self.gateway_transaction_id,
                 'refund_amount': float(self.refund_amount),
                 'refund_reason': self.refund_reason,
-                'refund_date': self.refund_date.isoformat() if self.refund_date else None,
-                'user_name': self.user.get_full_name(),
-                'rental_code': self.rental.rental_code,
-                'is_refundable': self.is_refundable(),
-                'refundable_amount': self.get_refundable_amount(),
-                'metadata': self.metadata
+                'refunded_at': self.refunded_at.isoformat() if self.refunded_at else None,
+                'processed_at': self.processed_at.isoformat() if self.processed_at else None,
+                'updated_at': self.updated_at.isoformat() if self.updated_at else None
             })
         
         return data
     
-    def __str__(self):
-        return f'{self.transaction_id}'
-
-# Import related models at the end to avoid circular imports
-from .user import User
-from .rental import Rental
+    def __repr__(self):
+        return f'<Payment {self.transaction_id}>'

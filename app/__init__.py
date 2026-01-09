@@ -1,55 +1,30 @@
 """
 ScootRapid - Flask Application Factory
-Microservice E-Scooter Rental Platform
+Lean E-Scooter Rental Platform
 """
 
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
-from peewee import *
-from playhouse.pool import PooledMySQLDatabase
-import config
 
 # Initialize extensions
+db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
 mail = Mail()
 
-# Global database reference
-db = None
-
-def init_database(app_config):
-    """Initialize database connection"""
-    global db
-    
-    db_config = app_config.DATABASE
-    
-    if db_config['engine'] == 'peewee.MySQLDatabase':
-        db = PooledMySQLDatabase(
-            db_config['name'],
-            user=db_config['user'],
-            password=db_config['password'],
-            host=db_config['host'],
-            port=db_config['port'],
-            charset=db_config['charset'],
-            max_connections=10,
-            stale_timeout=300
-        )
-    elif db_config['engine'] == 'peewee.SqliteDatabase':
-        db = SqliteDatabase(db_config['name'])
-    else:
-        raise ValueError(f"Unsupported database engine: {db_config['engine']}")
-    
-    return db
-
-def create_app(config_name):
+def create_app(config_name='development'):
     """Application factory pattern"""
-    app = Flask(__name__)
-    app.config.from_object(config.config[config_name])
+    from config import config
     
-    # Initialize database
-    database = init_database(app.config)
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
     
     # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     mail.init_app(app)
     
@@ -57,8 +32,11 @@ def create_app(config_name):
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     
-    # Make database available to app
-    app.database = database
+    # User loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models.user import User
+        return User.query.get(int(user_id))
     
     # Register blueprints
     from app.controllers import auth_bp, main_bp, scooter_bp, rental_bp
@@ -71,16 +49,6 @@ def create_app(config_name):
     from api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Database connection management
-    @app.before_request
-    def before_request():
-        database.connect()
-    
-    @app.teardown_request
-    def teardown_request(exception):
-        if not database.is_closed():
-            database.close()
-    
     # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
@@ -88,8 +56,7 @@ def create_app(config_name):
     
     @app.errorhandler(500)
     def internal_error(error):
-        if not database.is_closed():
-            database.close()
+        db.session.rollback()
         return {'error': 'Internal server error'}, 500
     
     @app.errorhandler(401)
@@ -104,28 +71,34 @@ def create_app(config_name):
     @app.cli.command()
     def init_db():
         """Initialize the database"""
-        from app.models import User, Scooter, Rental, Payment
-        
-        database.create_tables([User, Scooter, Rental, Payment], safe=True)
+        db.create_all()
         print('Database initialized.')
     
     @app.cli.command()
     def create_admin():
         """Create an admin user"""
-        from app.models import User
+        from app.models.user import User
         
         email = input('Enter admin email: ')
         password = input('Enter admin password: ')
+        first_name = input('Enter first name: ')
+        last_name = input('Enter last name: ')
         
         try:
-            admin = User.create_admin(
+            admin = User(
                 email=email,
-                password=password,
-                first_name='Admin',
-                last_name='User'
+                first_name=first_name,
+                last_name=last_name,
+                role='admin',
+                is_active=True,
+                is_verified=True
             )
+            admin.set_password(password)
+            db.session.add(admin)
+            db.session.commit()
             print(f'Admin user {email} created successfully.')
         except Exception as e:
+            db.session.rollback()
             print(f'Failed to create admin user: {e}')
     
     return app

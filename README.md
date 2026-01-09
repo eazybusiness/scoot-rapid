@@ -1,6 +1,6 @@
 # ScootRapid - Lean E-Scooter Rental Platform
 
-Lightweight and efficient E-Scooter rental platform built with Flask, MySQL, and Peewee ORM.
+Lightweight and efficient E-Scooter rental platform built with Flask, MySQL, and SQLAlchemy.
 
 ## Features
 
@@ -14,7 +14,7 @@ Lightweight and efficient E-Scooter rental platform built with Flask, MySQL, and
 ## Technology Stack
 
 - **Backend**: Python 3.9+, Flask 2.3
-- **Database**: MySQL with Peewee ORM (Active Record pattern)
+- **Database**: MySQL with SQLAlchemy ORM
 - **Authentication**: Session-based with Flask-Login
 - **API**: Flask-RESTful with Marshmallow
 - **Frontend**: Jinja2 templates, Tailwind CSS

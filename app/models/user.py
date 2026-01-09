@@ -1,134 +1,79 @@
 """
-User model for ScootRapid using Peewee ORM
+User model for ScootRapid using SQLAlchemy
 """
 
 from datetime import datetime
-from peewee import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app import db
 
-class User(UserMixin, Model):
-    """User model with authentication and authorization"""
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
     
-    email = CharField(unique=True, null=False, index=True)
-    password_hash = CharField(null=False)
-    first_name = CharField(null=False)
-    last_name = CharField(null=False)
-    phone = CharField(null=True)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    phone = db.Column(db.String(20))
     
-    # Role-based access control
-    role = CharField(
-        choices=[('admin', 'Admin'), ('provider', 'Provider'), ('customer', 'Customer')],
-        default='customer',
-        null=False
-    )
+    role = db.Column(db.String(20), nullable=False, default='customer', index=True)
     
-    # Account status
-    is_active = BooleanField(default=True, null=False)
-    is_verified = BooleanField(default=False, null=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
     
-    # Timestamps
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
-    last_login = DateTimeField(null=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
     
-    # JSON fields for flexible data storage
-    metadata = JSONField(default=dict)
-    preferences = JSONField(default=dict)
-    
-    class Meta:
-        database = db
-        table_name = 'users'
-        indexes = (
-            (('email', 'is_active'), True),
-            (('role', 'created_at'), False),
-        )
+    scooters = db.relationship('Scooter', backref='provider', lazy='dynamic', foreign_keys='Scooter.provider_id')
+    rentals = db.relationship('Rental', backref='user', lazy='dynamic', foreign_keys='Rental.user_id')
+    payments = db.relationship('Payment', backref='user', lazy='dynamic', foreign_keys='Payment.user_id')
     
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(User, self).__init__(**kwargs)
         if 'email' in kwargs:
             self.email = kwargs['email'].lower()
-        if 'first_name' in kwargs:
-            self.first_name = kwargs['first_name'].title()
-        if 'last_name' in kwargs:
-            self.last_name = kwargs['last_name'].title()
-    
-    def save(self, force_insert=False, only=None):
-        """Override save to update timestamps"""
-        self.updated_at = datetime.utcnow()
-        return super().save(force_insert, only)
     
     def set_password(self, password):
-        """Hash and set password"""
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
-        """Check if provided password matches hash"""
         return check_password_hash(self.password_hash, password)
     
     def update_last_login(self):
-        """Update last login timestamp"""
         self.last_login = datetime.utcnow()
-        self.save()
+        db.session.commit()
     
     def get_full_name(self):
-        """Get user's full name"""
         return f"{self.first_name} {self.last_name}"
     
-    def is_provider(self):
-        """Check if user is a provider"""
-        return self.role == 'provider'
-    
     def is_admin(self):
-        """Check if user is an admin"""
         return self.role == 'admin'
     
+    def is_provider(self):
+        return self.role == 'provider'
+    
+    def is_customer(self):
+        return self.role == 'customer'
+    
     def can_manage_scooters(self):
-        """Check if user can manage scooters"""
         return self.role in ['admin', 'provider']
     
-    def get_active_rentals(self):
-        """Get currently active rentals"""
-        return list(Rental.select().where(
-            (Rental.user == self) & (Rental.status == 'active')
-        ))
-    
-    def get_rental_history(self, limit=10):
-        """Get rental history"""
-        return list(Rental.select()
-                   .where(Rental.user == self)
-                   .order_by(Rental.created_at.desc())
-                   .limit(limit))
-    
-    def get_total_spent(self):
-        """Calculate total amount spent on rentals"""
-        query = (Payment
-                .select(fn.SUM(Payment.amount))
-                .join(Rental)
-                .where(Rental.user == self))
-        
-        result = query.scalar()
-        return float(result) if result else 0.0
-    
-    def get_scooter_count(self):
-        """Get number of scooters owned by provider"""
-        if self.is_provider():
-            return Scooter.select().where(Scooter.provider == self).count()
-        return 0
-    
     def get_stats(self):
-        """Get user statistics"""
+        total_rentals = self.rentals.count()
+        completed_rentals = self.rentals.filter_by(status='completed').all()
+        
+        total_spent = sum(r.total_cost for r in completed_rentals)
+        avg_duration = sum(r.duration_minutes for r in completed_rentals if r.duration_minutes) / len(completed_rentals) if completed_rentals else 0
+        
         return {
-            'total_rentals': Rental.select().where(Rental.user == self).count(),
-            'total_spent': self.get_total_spent(),
-            'scooter_count': self.get_scooter_count(),
-            'active_rentals': len(self.get_active_rentals()),
-            'last_login': self.last_login.isoformat() if self.last_login else None
+            'total_rentals': total_rentals,
+            'total_spent': total_spent,
+            'average_duration': avg_duration
         }
     
     def to_dict(self, include_sensitive=False):
-        """Convert user to dictionary"""
         data = {
             'id': self.id,
             'email': self.email,
@@ -137,41 +82,18 @@ class User(UserMixin, Model):
             'full_name': self.get_full_name(),
             'role': self.role,
             'is_active': self.is_active,
-            'is_verified': self.is_verified,
-            'created_at': self.created_at.isoformat(),
-            'last_login': self.last_login.isoformat() if self.last_login else None
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
         
         if include_sensitive:
             data.update({
                 'phone': self.phone,
-                'metadata': self.metadata,
-                'preferences': self.preferences,
-                'stats': self.get_stats()
+                'is_verified': self.is_verified,
+                'last_login': self.last_login.isoformat() if self.last_login else None,
+                'updated_at': self.updated_at.isoformat() if self.updated_at else None
             })
         
         return data
     
-    @classmethod
-    def create_admin(cls, email, password, first_name, last_name):
-        """Create an admin user"""
-        try:
-            admin = cls.create(
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                role='admin'
-            )
-            admin.set_password(password)
-            admin.save()
-            return admin
-        except IntegrityError:
-            raise ValueError('User with this email already exists')
-    
-    def __str__(self):
-        return f'{self.email}'
-
-# Import related models at the end to avoid circular imports
-from .scooter import Scooter
-from .rental import Rental
-from .payment import Payment
+    def __repr__(self):
+        return f'<User {self.email}>'

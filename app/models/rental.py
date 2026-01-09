@@ -1,292 +1,185 @@
 """
-Rental model for ScootRapid using Peewee ORM
+Rental model for ScootRapid using SQLAlchemy
 """
 
-from datetime import datetime, timedelta
-from peewee import *
+from datetime import datetime
 from app import db
 
-class Rental(Model):
-    """Rental model tracking scooter usage and billing"""
+class Rental(db.Model):
+    __tablename__ = 'rentals'
     
-    rental_code = CharField(unique=True, null=False, index=True)
+    id = db.Column(db.Integer, primary_key=True)
+    rental_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
     
-    # Rental relationships
-    user = ForeignKeyField(User, backref='rentals', null=False)
-    scooter = ForeignKeyField(Scooter, backref='rentals', null=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    scooter_id = db.Column(db.Integer, db.ForeignKey('scooters.id'), nullable=False, index=True)
     
-    # Timing information
-    start_time = DateTimeField(null=False)
-    end_time = DateTimeField(null=True)
-    duration_minutes = IntegerField(default=0)
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime)
     
-    # Location tracking
-    start_latitude = DecimalField(max_digits=10, decimal_places=8, null=False)
-    start_longitude = DecimalField(max_digits=11, decimal_places=8, null=False)
-    end_latitude = DecimalField(max_digits=10, decimal_places=8, null=True)
-    end_longitude = DecimalField(max_digits=11, decimal_places=8, null=True)
+    start_latitude = db.Column(db.Float, nullable=False)
+    start_longitude = db.Column(db.Float, nullable=False)
+    end_latitude = db.Column(db.Float)
+    end_longitude = db.Column(db.Float)
     
-    # Status tracking
-    status = CharField(
-        choices=[
-            ('active', 'Active'),
-            ('completed', 'Completed'),
-            ('cancelled', 'Cancelled'),
-            ('overdue', 'Overdue')
-        ],
-        default='active',
-        null=False,
-        index=True
-    )
+    status = db.Column(db.String(20), nullable=False, default='pending', index=True)
     
-    # Pricing information (stored in JSON for flexibility)
-    pricing = JSONField(default=dict)
-    total_cost = DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    duration_minutes = db.Column(db.Integer)
+    distance_km = db.Column(db.Float)
     
-    # Additional information
-    notes = TextField(null=True)
-    rating = IntegerField(null=True)  # 1-5 stars
-    feedback = TextField(null=True)
+    base_fee = db.Column(db.Float, default=1.50)
+    per_minute_rate = db.Column(db.Float, default=0.30)
+    total_cost = db.Column(db.Float, default=0.0)
     
-    # Timestamps
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
+    rating = db.Column(db.Integer)
+    feedback = db.Column(db.Text)
     
-    # Metadata for extensibility
-    metadata = JSONField(default=dict)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    class Meta:
-        database = db
-        table_name = 'rentals'
-        indexes = (
-            (('user', 'status'), True),
-            (('scooter', 'status'), True),
-            (('start_time', 'end_time'), False),
-        )
+    payments = db.relationship('Payment', backref='rental', lazy='dynamic', foreign_keys='Payment.rental_id')
     
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(self, 'rental_code') or not self.rental_code:
-            self.rental_code = self.generate_rental_code()
-        
-        # Initialize default pricing if not provided
-        if not hasattr(self, 'pricing') or not self.pricing:
-            self.pricing = self.get_default_pricing()
-    
-    def save(self, force_insert=False, only=None):
-        """Override save to update timestamps and validate"""
-        self.updated_at = datetime.utcnow()
-        
-        # Validate duration
-        if self.duration_minutes < 0:
-            raise ValueError('Duration minutes cannot be negative')
-        
-        # Validate rating
-        if self.rating is not None and not (1 <= self.rating <= 5):
-            raise ValueError('Rating must be between 1 and 5')
-        
-        return super().save(force_insert, only)
-    
-    def generate_rental_code(self):
-        """Generate unique rental code"""
-        import uuid
-        return f"SR-{uuid.uuid4().hex[:8].upper()}"
-    
-    def get_default_pricing(self):
-        """Get default pricing configuration"""
-        from flask import current_app
-        
-        return {
-            'base_fee': current_app.config.get('START_FEE', 1.50),
-            'per_minute_rate': current_app.config.get('BASE_PRICE_PER_MINUTE', 0.30),
-            'currency': 'EUR'
-        }
+        super(Rental, self).__init__(**kwargs)
+        if not self.rental_code:
+            self.rental_code = f"RNT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.user_id}"
     
     def start_rental(self):
-        """Start the rental process"""
-        if not self.scooter.is_available():
-            raise ValueError("Scooter is not available for rental")
+        from app.models.scooter import Scooter
         
-        self.scooter.set_status('in_use')
+        scooter = Scooter.query.get(self.scooter_id)
+        if not scooter:
+            raise ValueError("Scooter not found")
+        
+        if not scooter.is_available():
+            raise ValueError("Scooter is not available")
+        
         self.status = 'active'
         self.start_time = datetime.utcnow()
-        self.save()
+        
+        scooter.set_status('in_use')
+        
+        db.session.commit()
     
     def end_rental(self, end_latitude=None, end_longitude=None):
-        """End the rental and calculate costs"""
         if self.status != 'active':
             raise ValueError("Rental is not active")
         
-        # Update timing
         self.end_time = datetime.utcnow()
-        self.duration_minutes = int((self.end_time - self.start_time).total_seconds() / 60)
+        self.status = 'completed'
         
-        # Update end location
         if end_latitude and end_longitude:
             self.end_latitude = end_latitude
             self.end_longitude = end_longitude
-            
-            # Update scooter location
-            self.scooter.update_location(end_latitude, end_longitude)
         
-        # Calculate total cost
-        self.calculate_cost()
+        duration = (self.end_time - self.start_time).total_seconds() / 60
+        self.duration_minutes = int(duration)
         
-        # Update status
-        self.status = 'completed'
+        self.total_cost = self.calculate_cost()
         
-        # Make scooter available again
-        self.scooter.set_status('available')
+        from app.models.scooter import Scooter
+        scooter = Scooter.query.get(self.scooter_id)
+        if scooter:
+            scooter.set_status('available')
+            if end_latitude and end_longitude:
+                scooter.update_location(end_latitude, end_longitude)
         
-        self.save()
-    
-    def calculate_cost(self):
-        """Calculate total rental cost"""
-        base_fee = self.pricing.get('base_fee', 1.50)
-        per_minute_rate = self.pricing.get('per_minute_rate', 0.30)
-        
-        if self.duration_minutes <= 0:
-            self.total_cost = base_fee
-        else:
-            self.total_cost = base_fee + (self.duration_minutes * per_minute_rate)
+        db.session.commit()
     
     def cancel_rental(self, reason=None):
-        """Cancel an active rental"""
         if self.status != 'active':
             raise ValueError("Only active rentals can be cancelled")
         
-        # Update timing
-        self.end_time = datetime.utcnow()
-        self.duration_minutes = int((self.end_time - self.start_time).total_seconds() / 60)
-        
-        # Calculate partial cost (cancellation fee)
-        base_fee = self.pricing.get('base_fee', 1.50)
-        self.total_cost = base_fee  # Only charge base fee for cancellation
-        self.notes = reason or "Cancelled by user"
         self.status = 'cancelled'
+        self.end_time = datetime.utcnow()
         
-        # Make scooter available again
-        self.scooter.set_status('available')
+        duration = (self.end_time - self.start_time).total_seconds() / 60
+        self.duration_minutes = int(duration)
         
-        self.save()
+        self.total_cost = min(self.calculate_cost(), self.base_fee)
+        
+        from app.models.scooter import Scooter
+        scooter = Scooter.query.get(self.scooter_id)
+        if scooter:
+            scooter.set_status('available')
+        
+        db.session.commit()
     
-    def is_overdue(self):
-        """Check if rental is overdue"""
-        from flask import current_app
+    def calculate_cost(self):
+        if not self.duration_minutes:
+            if self.start_time:
+                duration = (datetime.utcnow() - self.start_time).total_seconds() / 60
+                return self.base_fee + (duration * self.per_minute_rate)
+            return self.base_fee
         
-        max_hours = current_app.config.get('MAX_RENTAL_TIME_HOURS', 12)
-        max_time = self.start_time + timedelta(hours=max_hours)
-        
-        return self.status == 'active' and datetime.utcnow() > max_time
+        return self.base_fee + (self.duration_minutes * self.per_minute_rate)
     
-    def check_overdue_status(self):
-        """Check and update overdue status"""
-        if self.is_overdue():
-            self.status = 'overdue'
-            self.save()
-            return True
-        return False
+    def get_duration_minutes(self):
+        if self.duration_minutes:
+            return self.duration_minutes
+        
+        if self.start_time:
+            end = self.end_time or datetime.utcnow()
+            return int((end - self.start_time).total_seconds() / 60)
+        
+        return 0
     
     def add_rating(self, rating, feedback=None):
-        """Add rating and feedback for completed rental"""
         if self.status != 'completed':
-            raise ValueError("Only completed rentals can be rated")
+            raise ValueError("Can only rate completed rentals")
         
         if not (1 <= rating <= 5):
             raise ValueError("Rating must be between 1 and 5")
         
         self.rating = rating
         self.feedback = feedback
-        self.save()
+        db.session.commit()
     
-    def get_payment_status(self):
-        """Check payment status"""
-        paid_amount = sum(p.amount for p in self.payments if p.status == 'completed')
-        return {
-            'total_cost': float(self.total_cost),
-            'paid_amount': float(paid_amount),
-            'outstanding': float(self.total_cost - paid_amount),
-            'is_fully_paid': paid_amount >= self.total_cost
-        }
-    
-    def get_duration_formatted(self):
-        """Get formatted duration string"""
-        if self.duration_minutes < 60:
-            return f"{self.duration_minutes} minutes"
-        else:
-            hours = self.duration_minutes // 60
-            minutes = self.duration_minutes % 60
-            return f"{hours}h {minutes}m"
-    
-    def get_route_distance(self):
-        """Calculate distance of the rental route"""
-        if self.end_latitude and self.end_longitude:
-            from math import radians, cos, sin, asin, sqrt
-            
-            lat1, lon1 = float(self.start_latitude), float(self.start_longitude)
-            lat2, lon2 = float(self.end_latitude), float(self.end_longitude)
-            
-            # Convert decimal degrees to radians
-            lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-            
-            # Haversine formula
-            dlat = lat2 - lat1
-            dlon = lon2 - lon1
-            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-            c = 2 * asin(sqrt(a))
-            
-            # Radius of earth in kilometers
-            r = 6371
-            return c * r
-        return 0.0
+    def check_overdue_status(self):
+        from flask import current_app
+        
+        if self.status != 'active':
+            return False
+        
+        max_hours = current_app.config.get('MAX_RENTAL_TIME_HOURS', 12)
+        duration_hours = (datetime.utcnow() - self.start_time).total_seconds() / 3600
+        
+        if duration_hours > max_hours:
+            self.status = 'overdue'
+            db.session.commit()
+            return True
+        
+        return False
     
     def to_dict(self, include_sensitive=False):
-        """Convert rental to dictionary"""
         data = {
             'id': self.id,
             'rental_code': self.rental_code,
-            'user_id': self.user.id,
-            'scooter_id': self.scooter.id,
+            'user_id': self.user_id,
+            'scooter_id': self.scooter_id,
             'status': self.status,
-            'start_time': self.start_time.isoformat(),
+            'start_time': self.start_time.isoformat() if self.start_time else None,
             'end_time': self.end_time.isoformat() if self.end_time else None,
-            'duration_minutes': self.duration_minutes,
-            'duration_formatted': self.get_duration_formatted(),
-            'start_location': {
-                'latitude': float(self.start_latitude),
-                'longitude': float(self.start_longitude)
-            },
-            'total_cost': float(self.total_cost),
-            'created_at': self.created_at.isoformat()
+            'duration_minutes': self.get_duration_minutes(),
+            'total_cost': float(self.total_cost) if self.total_cost else 0.0,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
-        
-        if self.end_latitude and self.end_longitude:
-            data['end_location'] = {
-                'latitude': float(self.end_latitude),
-                'longitude': float(self.end_longitude)
-            }
-            data['route_distance_km'] = round(self.get_route_distance(), 2)
         
         if include_sensitive:
             data.update({
-                'pricing': self.pricing,
+                'start_latitude': self.start_latitude,
+                'start_longitude': self.start_longitude,
+                'end_latitude': self.end_latitude,
+                'end_longitude': self.end_longitude,
+                'distance_km': self.distance_km,
+                'base_fee': float(self.base_fee),
+                'per_minute_rate': float(self.per_minute_rate),
                 'rating': self.rating,
                 'feedback': self.feedback,
-                'notes': self.notes,
-                'user_name': self.user.get_full_name(),
-                'scooter_identifier': self.scooter.identifier,
-                'scooter_model': f"{self.scooter.brand} {self.scooter.model}",
-                'payment_status': self.get_payment_status(),
-                'is_overdue': self.is_overdue(),
-                'metadata': self.metadata
+                'updated_at': self.updated_at.isoformat() if self.updated_at else None
             })
         
         return data
     
-    def __str__(self):
-        return f'{self.rental_code}'
-
-# Import related models at the end to avoid circular imports
-from .user import User
-from .scooter import Scooter
-from .payment import Payment
+    def __repr__(self):
+        return f'<Rental {self.rental_code}>'

@@ -4,16 +4,17 @@ from datetime import timedelta
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Database configuration for MySQL with Peewee
-    DATABASE = {
-        'engine': 'peewee.MySQLDatabase',
-        'name': os.environ.get('DB_NAME') or 'scoot_rapid',
-        'user': os.environ.get('DB_USER') or 'root',
-        'password': os.environ.get('DB_PASSWORD') or '',
-        'host': os.environ.get('DB_HOST') or 'localhost',
-        'port': int(os.environ.get('DB_PORT') or 3306),
-        'charset': 'utf8mb4'
-    }
+    # SQLAlchemy configuration
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Database configuration for MySQL with SQLAlchemy
+    DB_NAME = os.environ.get('DB_NAME') or 'scoot_rapid'
+    DB_USER = os.environ.get('DB_USER') or 'root'
+    DB_PASSWORD = os.environ.get('DB_PASSWORD') or ''
+    DB_HOST = os.environ.get('DB_HOST') or 'localhost'
+    DB_PORT = os.environ.get('DB_PORT') or '3306'
+    
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
     
     # Mail configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
@@ -32,21 +33,18 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    DATABASE = Config.DATABASE.copy()
-    DATABASE['name'] = os.environ.get('DEV_DB_NAME') or 'scoot_rapid_dev'
+    DB_NAME = os.environ.get('DEV_DB_NAME') or 'scoot_rapid_dev'
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
 class TestingConfig(Config):
     TESTING = True
-    DATABASE = {
-        'engine': 'peewee.SqliteDatabase',
-        'name': ':memory:'
-    }
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
 
 class ProductionConfig(Config):
     DEBUG = False
-    DATABASE = Config.DATABASE.copy()
-    DATABASE['name'] = os.environ.get('PROD_DB_NAME') or 'scoot_rapid_prod'
+    DB_NAME = os.environ.get('PROD_DB_NAME') or 'scoot_rapid_prod'
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{Config.DB_USER}:{Config.DB_PASSWORD}@{Config.DB_HOST}:{Config.DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
 config = {
     'development': DevelopmentConfig,
