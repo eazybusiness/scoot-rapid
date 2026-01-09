@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - ScootRapid{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
+    
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Verfügbare Scooter</h3>
+            <p class="text-4xl font-bold text-blue-600">{{ stats.available_scooters }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Aktive Ausleihen</h3>
+            <p class="text-4xl font-bold text-green-600">{{ stats.active_rentals }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Gesamt Scooter</h3>
+            <p class="text-4xl font-bold text-purple-600">{{ stats.total_scooters }}</p>
+        </div>
+    </div>
+
+    {% if current_user.is_customer() %}
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h3 class="text-xl font-semibold mb-4">Meine aktive Ausleihe</h3>
+        {% if active_rental %}
+        <div class="border-l-4 border-blue-500 pl-4">
+            <p class="font-semibold">Scooter: {{ active_rental.scooter.identifier }}</p>
+            <p class="text-gray-600">Gestartet: {{ active_rental.start_time.strftime('%d.%m.%Y %H:%M') }}</p>
+            <p class="text-gray-600">Dauer: {{ active_rental.get_duration_minutes() }} Minuten</p>
+            <div class="mt-4">
+                <a href="{{ url_for('rentals.rental_detail', rental_id=active_rental.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">Details anzeigen</a>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-600">Keine aktive Ausleihe</p>
+        <a href="{{ url_for('scooters.available') }}" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">Scooter mieten</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if current_user.is_provider() or current_user.is_admin() %}
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-xl font-semibold mb-4">Meine Scooter</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Kennung</th>
+                        <th class="px-4 py-2 text-left">Modell</th>
+                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left">Batterie</th>
+                        <th class="px-4 py-2 text-left">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for scooter in scooters[:5] %}
+                    <tr>
+                        <td class="px-4 py-2">{{ scooter.identifier }}</td>
+                        <td class="px-4 py-2">{{ scooter.model }}</td>
+                        <td class="px-4 py-2">
+                            <span class="px-2 py-1 rounded text-sm {% if scooter.status == 'available' %}bg-green-100 text-green-800{% elif scooter.status == 'in_use' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ scooter.status }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2">{{ scooter.battery_level }}%</td>
+                        <td class="px-4 py-2">
+                            <a href="{{ url_for('scooters.scooter_detail', scooter_id=scooter.id) }}" class="text-blue-600 hover:underline">Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4">
+            <a href="{{ url_for('scooters.list_scooters') }}" class="text-blue-600 hover:underline">Alle Scooter anzeigen →</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
