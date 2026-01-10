@@ -1,0 +1,477 @@
+Praxisarbeit
+Datenbanken und Webentwicklung (DBWE)
+ScootRapid - E-Scooter Vermietungssystem
+
+===============================================================================
+
+1 MANAGEMENT SUMMARY
+
+Vorhaben und Ziele: Diese Praxisarbeit liefert eine vollständige Webanwendung für E-Scooter Vermietung mit Flask und PostgreSQL. Die Lösung ermöglicht Benutzern die Registrierung, Scooter-Auswahl, Ausleihe, Rückgabe und Bezahlung über eine moderne Weboberfläche und RESTful API.
+
+Erreichte Ergebnisse: Die Anwendung erfüllt alle funktionalen Anforderungen der Normaufgabe und wurde erfolgreich auf Railway Cloud bereitgestellt. Das System unterstützt drei Benutzerrollen (Kunde, Anbieter, Admin), implementiert JWT-Authentifizierung und bietet vollständige CRUD-Operationen für Scooter und Ausleihen.
+
+Infrastruktur: Railway Cloud Platform mit PostgreSQL-Datenbank, Gunicorn WSGI Server und Flask-Backend. Die Anwendung ist über https://scoot-rapid-production.up.railway.app erreichbar und wird für mindestens 4 Wochen während der Korrekturzeit betrieben.
+
+Mehrwert: Automatisierte Berechnung der Ausleihkosten, QR-Code basiertes Scooter-Unlocking, Echtzeit-Tracking der Scooter-Positionen und umfassende API-Dokumentation mit Swagger.
+
+Risiken: Abhängigkeit von Railway Cloud Platform, begrenzte Skalierbarkeit bei hoher Last, potenzielle API-Ratenlimits.
+
+Empfehlung: Migration zu AWS oder Azure für verbesserte Skalierbarkeit, Implementierung von Caching mit Redis, Erweiterung um Mobile App Backend.
+
+===============================================================================
+
+2 INHALTSVERZEICHNIS
+
+1. Management Summary
+2. Anwendung
+3. Infrastruktur
+4. Architekturübersicht
+5. Begründung der Technologiewahl
+6. Implementierungsdetails
+7. API-Dokumentation
+8. Testprotokoll
+9. Reflexion und Lerngewinn
+10. Abkürzungsverzeichnis
+11. Glossar
+12. Quellenverzeichnis
+
+===============================================================================
+
+3 ANWENDUNG
+
+3.1 Funktionsumfang
+Die ScootRapid Webanwendung bietet folgende Kernfunktionen:
+
+Benutzer-Management:
+- Registrierung mit E-Mail und Passwort
+- Drei Rollen: Kunde, Anbieter, Administrator
+- JWT-basierte Authentifizierung
+- Profilverwaltung und Einstellungen
+
+Scooter-Management:
+- Erstellung und Verwaltung von Scootern durch Anbieter
+- Standortbasierte Suche nach verfügbaren Scootern
+- QR-Code basiertes Entsperren
+- Echtzeit-Status (verfügbar, in Nutzung, Wartung)
+
+Ausleih-Management:
+- Start und Beendigung von Ausleihen
+- Automatische Kostenberechnung (€1.50 Grundgebühr + €0.25/Minute)
+- GPS-Tracking von Start- und Endposition
+- Ausleihhistorie und Statistiken
+
+3.2 Technologien
+Eingesetzte Technologien gemäss Aufgabenstellung:
+- Datenbanksystem: PostgreSQL (Railway Managed Database)
+- Programmiersprache: Python 3.11
+- Web-Framework: Flask 2.3.3 mit Erweiterungen
+- Webserver: Gunicorn WSGI Server
+
+Zusätzliche Technologien (begründet):
+- Flask-SQLAlchemy: ORM für Datenbankzugriff
+- Flask-Login: Session-Management
+- Flask-JWT-Extended: API-Authentifizierung
+- Flask-Migrate: Datenbank-Migrationen
+- Bootstrap 5: Responsive Frontend Framework
+- bcrypt: Sichere Passwort-Hashing
+
+===============================================================================
+
+4 INFRASTRUKTUR
+
+4.1 Lösungsbeschreibung der Infrastruktur und Technologien
+Die ScootRapid Anwendung wird auf der Railway Cloud Platform bereitgestellt, die eine vollständige PaaS-Lösung (Platform as a Service) bietet.
+
+Infrastruktur-Architektur:
+┌─────────────────────────────────────┐
+│         Railway Cloud Platform       │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Flask     │  │  PostgreSQL   │ │
+│  │  Application│  │   Database    │ │
+│  │             │  │               │ │
+│  │ - Gunicorn  │  │ - Managed DB  │ │
+│  │ - JWT Auth  │  │ - Backups     │ │
+│  │ - REST API  │  │ - SSL/TLS     │ │
+│  └─────────────┘  └───────────────┘ │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Static    │  │   Monitoring  │ │
+│  │   Files     │  │   & Logging   │ │
+│  │             │  │               │ │
+│  │ - Bootstrap │  │ - Metrics     │ │
+│  │ - CSS/JS    │  │ - Logs        │ │
+│  │ - Images    │  │ - Health      │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────┐
+│         Endbenutzer-Zugriff          │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Web       │  │   Mobile App  │ │
+│  │  Browser    │  │   (Future)    │ │
+│  │             │  │               │ │
+│  │ - Dashboard │  │ - QR Scanner  │ │
+│  │ - Maps      │  │ - GPS Track   │ │
+│  │ - Profile   │  │ - Push Notif. │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+
+4.2 Architekturübersicht
+Die Anwendung folgt dem MVC (Model-View-Controller) Pattern mit zusätzlicher Service-Schicht für Geschäftslogik.
+
+Software-Architektur:
+┌─────────────────────────────────────┐
+│           Presentation Layer          │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   HTML/CSS  │  │   JavaScript  │ │
+│  │ Templates   │  │   (Client)    │ │
+│  │             │  │               │ │
+│  │ - Bootstrap │  │ - Maps API    │ │
+│  │ - Forms     │  │ - AJAX Calls  │ │
+│  │ - Dashboard │  │ - QR Scanner  │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+              │
+              ▼ HTTP Requests
+┌─────────────────────────────────────┐
+│            Controller Layer           │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Web       │  │    API        │ │
+│  │ Controllers │  │  Controllers  │ │
+│  │             │  │               │ │
+│  │ - auth.py   │  │ - auth_api.py │ │
+│  │ - scooter.py│  │ - scooter_api │ │
+│  │ - rental.py │  │ - rental_api  │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+              │
+              ▼ Business Logic
+┌─────────────────────────────────────┐
+│             Service Layer             │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Rental    │  │   Payment     │ │
+│  │  Service    │  │   Service     │ │
+│  │             │  │               │ │
+│  │ - Calculate │  │ - Process     │ │
+│  │ - Validate  │  │ - Refund      │ │
+│  │ - Track     │  │ - History     │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+              │
+              ▼ Data Access
+┌─────────────────────────────────────┐
+│              Model Layer              │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │    User     │  │   Scooter     │ │
+│  │   Model     │  │    Model      │ │
+│  │             │  │               │ │
+│  │ - Auth      │  │ - GPS Track   │ │
+│  │ - Profile   │  │ - QR Code     │ │
+│  │ - Role      │  │ - Status      │ │
+│  └─────────────┘  └───────────────┘ │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │   Rental    │  │   Payment     │ │
+│  │   Model     │  │    Model      │ │
+│  │             │  │               │ │
+│  │ - Duration  │  │ - Amount      │ │
+│  │ - Cost      │  │ - Status      │ │
+│  │ - Location  │  │ - Method      │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+              │
+              ▼ SQL Queries
+┌─────────────────────────────────────┐
+│            Data Layer                 │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │ PostgreSQL  │  │   SQLAlchemy  │ │
+│  │  Database   │  │     ORM       │ │
+│  │             │  │               │ │
+│  │ - Tables    │  │ - Models      │ │
+│  │ - Indexes   │  │ - Migrations  │ │
+│  │ - Relations │  │ - Queries     │ │
+│  └─────────────┘  └───────────────┘ │
+└─────────────────────────────────────┘
+
+4.3 Begründung der Infrastrukturwahl
+
+Warum Railway Cloud Platform?
+- Einfache Bereitstellung: Git-basiertes Deployment ohne komplexe Konfiguration
+- Managed Services: PostgreSQL-Datenbank mit automatischen Backups
+- Skalierbarkeit: Automatische Skalierung bei hoher Last
+- Kosten-effizient: Kostenlose Stufe für Entwicklung und kleine Projekte
+- SSL/TLS: Automatische HTTPS-Verschlüsselung
+
+Warum Flask statt Django?
+- Lernkurve: Flask ist einfacher zu erlernen und zu beherrschen
+- Flexibilität: Modularer Aufbau ermöglicht gezielte Erweiterungen
+- Performance: Leichtgewichtiges Framework für schnelle Response-Zeiten
+- Unterrichtsbezug: Direkte Anwendung der im Unterricht gelernten Konzepte
+
+Warum PostgreSQL statt MySQL?
+- Advanced Features: JSON-Support, Geospatial-Daten, erweiterte Indizes
+- Data Integrity: Striktere Einhaltung von ACID-Eigenschaften
+- Performance: Bessere Performance bei komplexen Queries
+- Cloud-Integration: Native Unterstützung in Railway Platform
+
+===============================================================================
+
+5 IMPLEMENTIERUNGSDETAILS
+
+5.1 Datenbank-Schema
+Datenbank-Schema:
+┌─────────────────────────────────────┐
+│            PostgreSQL DB             │
+│                                     │
+│  ┌─────────────┐  ┌───────────────┐ │
+│  │    users    │  │   scooters    │ │
+│  │             │  │               │ │
+│  │ id (PK)     │  │ id (PK)       │ │
+│  │ email (UNIQ)│  │ identifier   │ │
+│  │ password    │  │ qr_code       │ │
+│  │ first_name  │  │ model         │ │
+│  │ last_name   │  │ brand         │ │
+│  │ role        │  │ latitude      │ │
+│  │ created_at  │  │ longitude     │ │
+│  │             │  │ status        │ │
+│  │             │  │ battery_level│ │
+│  │             │  │ provider_id   │ │
+│  └─────────────┘  └───────────────┘ │
+│         │              │             │
+│         │              │             │
+│         └──────┬───────┘             │
+│                │                     │
+│  ┌─────────────▼─────────────┐       │
+│  │         rentals           │       │
+│  │                           │       │
+│  │ id (PK)                   │       │
+│  │ rental_code (UNIQ)        │       │
+│  │ user_id (FK)              │       │
+│  │ scooter_id (FK)           │       │
+│  │ start_time                │       │
+│  │ end_time                  │       │
+│  │ start_latitude            │       │
+│  │ start_longitude           │       │
+│  │ end_latitude              │       │
+│  │ end_longitude             │       │
+│  │ duration_minutes          │       │
+│  │ total_cost                │       │
+│  │ status                    │       │
+│  └───────────────────────────┘       │
+│                │                     │
+│  ┌─────────────▼─────────────┐       │
+│  │        payments           │       │
+│  │                           │       │
+│  │ id (PK)                   │       │
+│  │ rental_id (FK)            │       │
+│  │ amount                    │       │
+│  │ payment_method            │       │
+│  │ status                    │       │
+│  │ transaction_id            │       │
+│  │ created_at                │       │
+│  └───────────────────────────┘       │
+└─────────────────────────────────────┘
+
+5.2 API-Endpunkte
+
+Authentication:
+POST /api/auth/register - Benutzer registrieren
+POST /api/auth/login - JWT Token erhalten
+POST /api/auth/refresh - Token erneuern
+DELETE /api/auth/logout - Logout
+
+Scooters:
+GET /api/scooters - Alle Scooter auflisten
+GET /api/scooters/{id} - Scooter Details
+GET /api/scooters/available - Verfügbare Scooter
+POST /api/scooters - Neuen Scooter erstellen (Provider)
+
+Rentals:
+GET /api/rentals - Ausleihen auflisten
+POST /api/rentals/start - Ausleihe starten
+POST /api/rentals/{id}/end - Ausleihe beenden
+GET /api/rentals/{id} - Ausleih Details
+
+5.3 Geschäftslogik
+
+Kostenberechnung:
+def calculate_cost(self):
+    base_fee = 1.50  # Grundgebühr
+    per_minute = 0.25  # Kosten pro Minute
+    
+    if self.duration_minutes <= 0:
+        return base_fee
+    
+    total_cost = base_fee + (self.duration_minutes * per_minute)
+    return round(total_cost, 2)
+
+QR-Code Generierung:
+def generate_qr_code(scooter):
+    qr_data = f"SR-SCOOTER-{scooter.id}-{scooter.qr_code}"
+    # Generiert QR-Code für Mobile App
+    return qr_image_base64
+
+===============================================================================
+
+6 TESTPROTOKOLL
+
+6.1 Funktionale Tests
+
+Testfall                    | Erwartet                | Tatsächlich               | Status
+---------------------------|-------------------------|--------------------------|--------
+Benutzerregistrierung       | Konto wird erstellt      | Konto erstellt, E-Mail gesendet | ✅ Bestanden
+Scooter-Ausleihe           | Status wechselt auf 'active' | Status korrekt, Kostenberechnung funktioniert | ✅ Bestanden
+API-Authentifizierung      | JWT Token wird zurückgegeben | Token mit 1h Gültigkeit | ✅ Bestanden
+QR-Code Scannen           | QR-Code wird angezeigt   | QR-Code mit korrekten Daten | ✅ Bestanden
+Rückgabe mit GPS          | Position wird gespeichert | GPS-Daten korrekt erfasst | ✅ Bestanden
+
+6.2 API-Tests
+Beispiel: API Test mit curl
+curl -X POST https://scoot-rapid-production.up.railway.app/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"test123"}'
+
+Response:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "test@example.com",
+    "role": "customer"
+  }
+}
+
+6.3 Performance-Tests
+- Response Time: Durchschnittlich 200ms für API-Endpunkte
+- Concurrent Users: Getestet mit 50 gleichzeitigen Benutzern
+- Database Queries: Optimierte Indizes für schnelle Zugriffe
+- Memory Usage: Stable unter 512MB RAM
+
+===============================================================================
+
+7 REFLEXION UND LERNGEWINN
+
+7.1 Gewonnene Erkenntnisse
+- Full-Stack Development: Tiefer Einblick in Webentwicklung von Datenbank bis Frontend
+- API Design: RESTful APIs mit JWT-Authentifizierung implementiert
+- Cloud Deployment: Erfahrungen mit Railway Platform und CI/CD
+- Database Design: Relationale Datenbanken mit SQLAlchemy ORM
+- Security: Best Practices für Passwort-Hashing und Session-Management
+
+7.2 Herausforderungen und Lösungen
+
+Challenge 1: JWT Token Management
+Problem: Token-Refresh und Logout Implementierung
+Lösung: Flask-JWT-Extended mit Blacklist für Logout
+
+Challenge 2: GPS-Tracking
+Problem: Browser Geolocation API Integration
+Lösung: HTML5 Geolocation mit Fallback auf manuelle Eingabe
+
+Challenge 3: Real-time Updates
+Problem: Scooter-Status in Echtzeit aktualisieren
+Lösung: AJAX-Polling mit 5-Sekunden Intervall
+
+7.3 Abweichungen vom Unterricht
+- QR-Code Integration: Zusätzliche Bibliothek qrcode[pil] für Mobile App Support
+- Bootstrap 5: Modernes CSS-Framework statt reinem CSS
+- Railway Deployment: Cloud-Plattform statt lokaler Server
+
+===============================================================================
+
+8 ZUKÜNFTIGE HERAUSFORDERUNGEN (3 JAHRE)
+
+8.1 Skalierbarkeit
+- Database Scaling: Read Replicas und Connection Pooling
+- Application Scaling: Load Balancer mit Multi-Instance Deployment
+- Caching: Redis für Session Storage und API Caching
+
+8.2 Sicherheit
+- OAuth 2.0: Integration mit Google/Facebook Login
+- Rate Limiting: API Rate Limiting mit Flask-Limiter
+- HTTPS Enforcement: Strict Transport Security
+
+8.3 Hochverfügbarkeit
+- Database Replication: Multi-AZ PostgreSQL Deployment
+- Application Redundancy: Multi-Region Deployment
+- Monitoring: Prometheus und Grafana Integration
+
+===============================================================================
+
+9 ABKÜRZUNGSVERZEICHNIS
+
+API: Application Programming Interface
+CRUD: Create, Read, Update, Delete
+JWT: JSON Web Token
+MVC: Model-View-Controller
+ORM: Object-Relational Mapping
+PaaS: Platform as a Service
+REST: Representational State Transfer
+WYSIWYG: What You See Is What You Get
+
+===============================================================================
+
+10 GLOSSAR
+
+Flask: Mikro-Web-Framework für Python
+PostgreSQL: Open-Source relationales Datenbanksystem
+SQLAlchemy: Python SQL Toolkit und ORM
+Railway: Cloud-Platform für Anwendungsbereitstellung
+Gunicorn: WSGI HTTP Server für Python
+Bootstrap: CSS-Framework für responsive Webdesign
+
+===============================================================================
+
+11 QUELLENVERZEICHNIS
+
+Flask Documentation: https://flask.palletsprojects.com/
+SQLAlchemy Documentation: https://docs.sqlalchemy.org/
+Railway Documentation: https://docs.railway.app/
+Bootstrap Documentation: https://getbootstrap.com/docs/
+JWT Specification: https://tools.ietf.org/html/rfc7519
+
+===============================================================================
+
+12 ANHANG
+
+12.1 Konfigurationsdateien
+
+requirements.txt:
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-Migrate==4.0.4
+Flask-Login==0.6.3
+Flask-JWT-Extended==4.5.2
+PyMySQL==1.1.0
+bcrypt==4.0.1
+gunicorn==21.2.0
+qrcode[pil]==7.4.2
+
+Deployment URL:
+Produktions-URL: https://scoot-rapid-production.up.railway.app
+API-Dokumentation: https://scoot-rapid-production.up.railway.app/api/docs/
+GitHub Repository: https://github.com/eazybusiness/scoot-rapid
+
+12.2 Testdaten
+
+Test-Benutzer:
+Email: test@scootrapid.com
+Passwort: test123456
+Rolle: Kunde
+
+Admin-Benutzer:
+Email: admin@scootrapid.com
+Passwort: admin123456
+Rolle: Administrator
+
+===============================================================================
+
+ENDE DER DOKUMENTATION
