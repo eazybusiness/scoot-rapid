@@ -2,166 +2,275 @@
 
 {% block title %}Anbieter-Dashboard - ScootRapid{% endblock %}
 
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #3b82f6;
+    }
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .scooter-card {
+        transition: all 0.3s ease;
+    }
+    .scooter-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">
-                <i class="bi bi-shop"></i> Anbieter-Dashboard
-            </h2>
-        </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8 fade-in-up">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+            <span class="text-scooter-blue">Anbieter-</span>Dashboard
+        </h1>
+        <p class="text-gray-600">Verwalten Sie Ihre Scooter und verfolgen Sie Ihre Einnahmen</p>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Meine Scooter</h5>
-                    <h2 class="text-primary">{{ total_scooters }}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card bg-white rounded-2xl shadow-lg p-6 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-12 h-12 bg-scooter-blue bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-scooter-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600">Meine Scooter</p>
+                    <p class="text-2xl font-bold text-scooter-blue">{{ total_scooters }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Verfügbar</h5>
-                    <h2 class="text-success">{{ available }}</h2>
+        
+        <div class="stat-card bg-white rounded-2xl shadow-lg p-6 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-12 h-12 bg-scooter-green bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-scooter-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600">Verfügbar</p>
+                    <p class="text-2xl font-bold text-scooter-green">{{ available }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">In Benutzung</h5>
-                    <h2 class="text-warning">{{ in_use }}</h2>
+        
+        <div class="stat-card bg-white rounded-2xl shadow-lg p-6 fade-in-up" style="animation-delay: 0.3s;">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600">In Benutzung</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ in_use }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Gesamtumsatz</h5>
-                    <h2 class="text-info">€{{ "%.2f"|format(total_revenue) }}</h2>
+        
+        <div class="stat-card bg-white rounded-2xl shadow-lg p-6 fade-in-up" style="animation-delay: 0.4s;">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-12 h-12 bg-scooter-orange bg-opacity-10 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-scooter-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600">Gesamtumsatz</p>
+                    <p class="text-2xl font-bold text-scooter-orange">€{{ "%.2f"|format(total_revenue) }}</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- My Scooters -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-bicycle"></i> Meine Scooter
-                    </h5>
-                    <a href="{{ url_for('scooters.create') }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle"></i> Neuer Scooter
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if scooters %}
-                    <div class="row">
-                        {% for scooter in scooters %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-0">{{ scooter.model }}</h6>
-                                        {% if scooter.status == 'available' %}
-                                        <span class="badge bg-success">Verfügbar</span>
-                                        {% elif scooter.status == 'in_use' %}
-                                        <span class="badge bg-warning">In Benutzung</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">Wartung</span>
-                                        {% endif %}
-                                    </div>
-                                    <p class="card-text">
-                                        <small class="text-muted">Kennzeichen: {{ scooter.license_plate }}</small><br>
-                                        <small class="text-muted">Batterie: {{ scooter.battery_level }}%</small><br>
-                                        <small class="text-muted">Standort: {{ scooter.location }}</small>
-                                    </p>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ url_for('scooters.edit', scooter_id=scooter.id) }}" class="btn btn-outline-primary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="btn btn-outline-info">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 fade-in-up" style="animation-delay: 0.5s;">
+        <div class="bg-gradient-to-r from-scooter-blue to-blue-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Meine Scooter
+                </h2>
+                <a href="{{ url_for('scooters.create') }}" 
+                   class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg font-medium hover:bg-opacity-30 transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Neuer Scooter
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if scooters %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for scooter in scooters %}
+                <div class="scooter-card border border-gray-200 rounded-xl p-4 hover:border-scooter-blue">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">{{ scooter.model }}</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if scooter.status == 'available' %}bg-green-100 text-green-800
+                            {% elif scooter.status == 'in_use' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if scooter.status == 'available' %}Verfügbar
+                            {% elif scooter.status == 'in_use' %}In Benutzung
+                            {% else %}Wartung{% endif %}
+                        </span>
                     </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="bi bi-bicycle display-1 text-muted"></i>
-                        <h5 class="mt-3">Noch keine Scooter</h5>
-                        <p class="text-muted">Fügen Sie Ihren ersten Scooter hinzu, um mit dem Einnahmen zu beginnen.</p>
-                        <a href="{{ url_for('scooters.create') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Erster Scooter
+                    <div class="space-y-2 mb-4">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                            </svg>
+                            Kennzeichen: {{ scooter.license_plate }}
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            Batterie: {{ scooter.battery_level }}%
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Standort: {{ scooter.location }}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('scooters.edit', scooter_id=scooter.id) }}" 
+                           class="flex-1 bg-scooter-blue text-white py-2 px-3 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Bearbeiten
+                        </a>
+                        <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" 
+                           class="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Details
                         </a>
                     </div>
-                    {% endif %}
                 </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Noch keine Scooter</h3>
+                <p class="text-gray-600 mb-6">Fügen Sie Ihren ersten Scooter hinzu, um mit dem Einnahmen zu beginnen.</p>
+                <a href="{{ url_for('scooters.create') }}" 
+                   class="bg-scooter-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 transition-colors inline-flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Erster Scooter
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 
     <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-activity"></i> Neueste Aktivität
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_rentals %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>Benutzer</th>
-                                    <th>Scooter</th>
-                                    <th>Dauer</th>
-                                    <th>Kosten</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rental in recent_rentals %}
-                                <tr>
-                                    <td>{{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                    <td>{{ rental.user.first_name }} {{ rental.user.last_name }}</td>
-                                    <td>{{ rental.scooter.model }} ({{ rental.scooter.license_plate }})</td>
-                                    <td>{{ rental.get_duration_formatted() }}</td>
-                                    <td>€{{ "%.2f"|format(rental.total_cost or 0) }}</td>
-                                    <td>
-                                        {% if rental.status == 'completed' %}
-                                        <span class="badge bg-success">Abgeschlossen</span>
-                                        {% elif rental.status == 'cancelled' %}
-                                        <span class="badge bg-secondary">Storniert</span>
-                                        {% elif rental.status == 'active' %}
-                                        <span class="badge bg-warning">Aktiv</span>
-                                        {% else %}
-                                        <span class="badge bg-info">Gebucht</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">Noch keine Aktivität vorhanden.</p>
-                    {% endif %}
-                </div>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up" style="animation-delay: 0.6s;">
+        <div class="bg-gradient-to-r from-scooter-orange to-orange-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Neueste Aktivität
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if recent_rentals %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Benutzer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scooter</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dauer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kosten</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for rental in recent_rentals %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ rental.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ rental.user.first_name }} {{ rental.user.last_name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ rental.scooter.model }} ({{ rental.scooter.license_plate }})
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ rental.get_duration_formatted() }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-scooter-orange">
+                                €{{ "%.2f"|format(rental.total_cost or 0) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if rental.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif rental.status == 'cancelled' %}bg-gray-100 text-gray-800
+                                    {% elif rental.status == 'active' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    {% if rental.status == 'completed' %}Abgeschlossen
+                                    {% elif rental.status == 'cancelled' %}Storniert
+                                    {% elif rental.status == 'active' %}Aktiv
+                                    {% else %}Gebucht{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <p class="text-gray-600">Noch keine Aktivität vorhanden.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
