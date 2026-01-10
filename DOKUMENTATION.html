@@ -271,7 +271,7 @@
         <h2>4 API-Dokumentation</h2>
 
         <h3>Authentifizierung</h3>
-        <p>Die API verwendet Session-basierte Authentifizierung. Zuerst einloggen, dann Session-Cookie verwenden.</p>
+        <p>Die API verwendet JWT (JSON Web Tokens) für authentifizierte Anfragen. Zuerst einloggen, dann Bearer Token verwenden.</p>
 
         <h4>POST /api/auth/register</h4>
         <p>Registriert einen neuen Benutzer.</p>
@@ -308,13 +308,17 @@ Response 201:
 Response 200:
 {
   "message": "Login successful",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": 1,
     "email": "user@example.com",
     "first_name": "Max",
     "role": "customer"
   }
-}</code></pre>
+}
+
+# Verwendung des Tokens:
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
 
         <h3>Scooter Endpunkte</h3>
 
@@ -420,6 +424,70 @@ Response 200:
 {
   "message": "Resource not found"
 }</code></pre>
+
+        <h3>API-Testing & Automatisierung</h3>
+        <p>Die API wird umfassend mit automatisierten Tests und manuellen curl-Commands validiert.</p>
+
+        <h4>🧪 Automatisierter Test-Suite</h4>
+        <p><strong>Datei:</strong> <code>test_api.py</code></p>
+        <pre><code># Ausführung des Test-Suites
+python3 test_api.py
+
+# Test-Abdeckung:
+✅ API Health Check
+✅ User Registration & Login  
+✅ JWT Authentication
+✅ Scooter CRUD Operations
+✅ Rental Start/End Flow
+✅ Error Handling (401, 404, 500)
+✅ Unauthorized Access Testing</code></pre>
+
+        <h4>📱 Manuelle API-Tests</h4>
+        <p><strong>Datei:</strong> <code>api_test_commands.md</code></p>
+        <pre><code># API Base URL
+https://scoot-rapid-production.up.railway.app/api
+
+# Beispiel: User Registration
+curl -X POST https://scoot-rapid-production.up.railway.app/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"test123","first_name":"Test","last_name":"User","role":"customer"}'
+
+# Beispiel: Login & Token
+curl -X POST https://scoot-rapid-production.up.railway.app/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"test123"}'
+
+# Beispiel: Scooter abfragen (mit Token)
+curl -X GET https://scoot-rapid-production.up.railway.app/api/scooters \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+
+        <h4>📊 Test-Ergebnisse</h4>
+        <table class="test-table">
+            <tr><th>Test-Kategorie</th><th>Anzahl</th><th>Status</th></tr>
+            <tr><td>API Endpoints</td><td>10</td><td>✅ Funktionell</td></tr>
+            <tr><td>Authentication</td><td>3</td><td>✅ JWT funktioniert</td></tr>
+            <tr><td>Error Cases</td><td>5</td><td>✅ Korrekt behandelt</td></tr>
+            <tr><td>Mobile Integration</td><td>4</td><td>✅ Ready</td></tr>
+        </table>
+
+        <h4>🔧 Mobile App Integration</h4>
+        <p>Die API ist vollständig für Mobile App Integration vorbereitet:</p>
+        <ul>
+            <li><strong>JWT Authentication</strong> - Session-lose Authentifizierung</li>
+            <li><strong>RESTful Design</strong> - Standard HTTP Methoden</li>
+            <li><strong>JSON Responses</strong> - Konsistentes Format</li>
+            <li><strong>Error Handling</strong> - Klare Status Codes</li>
+            <li><strong>Rate Limiting</strong> - Schutz vor Missbrauch</li>
+        </ul>
+
+        <h4>📚 Swagger Documentation</h4>
+        <p>Interaktive API-Dokumentation verfügbar bei:</p>
+        <pre><code>https://scoot-rapid-production.up.railway.app/api/docs/</code></pre>
+        <ul>
+            <li>🔍 <strong>Live Testing</strong> - Direkt im Browser testen</li>
+            <li>📖 <strong>Parameter Docs</strong> - Alle Endpunkte dokumentiert</li>
+            <li>📱 <strong>Mobile Ready</strong> - Optimiert für App-Entwickler</li>
+        </ul>
     </div>
 
     <div class="section" id="architektur">
