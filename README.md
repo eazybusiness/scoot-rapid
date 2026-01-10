@@ -2,6 +2,13 @@
 
 Lightweight and efficient E-Scooter rental platform built with Flask, MySQL, and SQLAlchemy.
 
+## 👨‍💻 Developer Contact
+
+**Nils Peters** - Full-Stack Developer & Project Lead  
+📧 Email: [np@hiplus.de](mailto:np@hiplus.de)  
+🌐 Profile: [me.hiplus.de](https://me.hiplus.de)  
+📱 vCard: [Download Contact](Nils_Peters.vcf)
+
 ## Features
 
 - **User Management**: Simple registration, session-based authentication, role-based access
