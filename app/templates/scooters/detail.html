@@ -125,7 +125,7 @@
                                         <div class="ms-2" style="width: 60px;">
                                             <div class="battery-indicator">
                                                 <div class="battery-level {% if scooter.battery_level > 50 %}bg-success{% elif scooter.battery_level > 20 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                     style="width: {{ scooter.battery_level }}%"></div>
+                                                     data-battery="{{ scooter.battery_level }}"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -396,4 +396,17 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set battery level width without inline styles
+document.addEventListener('DOMContentLoaded', function() {
+    const batteryLevel = document.querySelector('[data-battery]');
+    if (batteryLevel) {
+        const battery = batteryLevel.getAttribute('data-battery');
+        batteryLevel.style.width = battery + '%';
+    }
+});
+</script>
 {% endblock %}
