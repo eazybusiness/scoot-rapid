@@ -124,6 +124,27 @@ class Rental(db.Model):
         
         return 0
     
+    def get_duration_formatted(self):
+        """Return formatted duration string (e.g., '2 Stunden 30 Minuten')"""
+        minutes = self.get_duration_minutes()
+        
+        if minutes < 60:
+            return f"{minutes} Minuten"
+        elif minutes < 1440:  # Less than 24 hours
+            hours = minutes // 60
+            remaining_minutes = minutes % 60
+            if remaining_minutes == 0:
+                return f"{hours} Stunde{'n' if hours != 1 else ''}"
+            else:
+                return f"{hours} Stunde{'n' if hours != 1 else ''} {remaining_minutes} Minute{'n' if remaining_minutes != 1 else ''}"
+        else:  # More than 24 hours
+            days = minutes // 1440
+            remaining_hours = (minutes % 1440) // 60
+            if remaining_hours == 0:
+                return f"{days} Tag{'e' if days != 1 else ''}"
+            else:
+                return f"{days} Tag{'e' if days != 1 else ''} {remaining_hours} Stunde{'n' if remaining_hours != 1 else ''}"
+    
     def add_rating(self, rating, feedback=None):
         if self.status != 'completed':
             raise ValueError("Can only rate completed rentals")
