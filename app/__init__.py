@@ -9,12 +9,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_jwt_extended import JWTManager
 
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 mail = Mail()
+jwt = JWTManager()
 
 def create_app(config_name=None):
     """Application factory pattern"""
@@ -36,6 +38,7 @@ def create_app(config_name=None):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     mail.init_app(app)
+    jwt.init_app(app)
     
     # Configure login manager
     login_manager.login_view = 'auth.login'
@@ -55,8 +58,8 @@ def create_app(config_name=None):
     app.register_blueprint(rental_bp)
     
     # Register API blueprints
-    from api import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    from app.controllers.api_controller import api_bp
+    app.register_blueprint(api_bp)
     
     # Error handlers
     @app.errorhandler(404)
