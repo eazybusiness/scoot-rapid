@@ -2,6 +2,38 @@
 
 {% block title %}Scooter Erstellen - ScootRapid{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .help-section {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+    }
+    .gps-input-group {
+        position: relative;
+    }
+    .gps-input-group .input-group-text {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
@@ -13,33 +45,54 @@
                     <li class="breadcrumb-item active">Erstellen</li>
                 </ol>
             </nav>
-            <h2 class="mb-4">
-                <i class="bi bi-plus-circle"></i> Neuen Scooter erstellen
-            </h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="bi bi-plus-circle text-primary"></i> Neuen Scooter erstellen
+                </h2>
+                <span class="badge bg-info">Neuer Scooter</span>
+            </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Scooter-Informationen</h5>
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Scooter-Informationen
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" id="scooterForm">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="identifier" class="form-label">Identifikator *</label>
-                                    <input type="text" name="identifier" class="form-control" id="identifier" required>
-                                    <small class="form-text text-muted">Eindeutige Kennung für den Scooter</small>
+                                    <label for="identifier" class="form-label fw-semibold">
+                                        Identifikator <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-tag"></i>
+                                        </span>
+                                        <input type="text" name="identifier" class="form-control" id="identifier" 
+                                               required placeholder="z.B. SC001">
+                                    </div>
+                                    <div class="form-text">Eindeutige Kennung für den Scooter</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="license_plate" class="form-label">Kennzeichen</label>
-                                    <input type="text" name="license_plate" class="form-control" id="license_plate">
-                                    <small class="form-text text-muted">Offizielles Kennzeichen (optional)</small>
+                                    <label for="license_plate" class="form-label fw-semibold">
+                                        Kennzeichen
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-card-text"></i>
+                                        </span>
+                                        <input type="text" name="license_plate" class="form-control" id="license_plate" 
+                                               placeholder="z.B. ZH-AB 123">
+                                    </div>
+                                    <div class="form-text">Offizielles Kennzeichen (optional)</div>
                                 </div>
                             </div>
                         </div>
@@ -47,14 +100,30 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="model" class="form-label">Modell *</label>
-                                    <input type="text" name="model" class="form-control" id="model" required>
+                                    <label for="model" class="form-label fw-semibold">
+                                        Modell <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-cpu"></i>
+                                        </span>
+                                        <input type="text" name="model" class="form-control" id="model" 
+                                               required placeholder="z.B. Mi Electric Scooter">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="brand" class="form-label">Marke *</label>
-                                    <input type="text" name="brand" class="form-control" id="brand" required>
+                                    <label for="brand" class="form-label fw-semibold">
+                                        Marke <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-building"></i>
+                                        </span>
+                                        <input type="text" name="brand" class="form-control" id="brand" 
+                                               required placeholder="z.B. Xiaomi">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -62,74 +131,130 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="battery_level" class="form-label">Batteriestand (%)</label>
-                                    <input type="number" name="battery_level" class="form-control" id="battery_level" 
-                                           min="0" max="100" value="100">
-                                    <small class="form-text text-muted">0-100%</small>
+                                    <label for="battery_level" class="form-label fw-semibold">
+                                        Batteriestand (%)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-battery-charging"></i>
+                                        </span>
+                                        <input type="number" name="battery_level" class="form-control" id="battery_level" 
+                                               min="0" max="100" value="100">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">0-100% - Aktueller Ladezustand</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select name="status" class="form-control" id="status">
-                                        <option value="available">Verfügbar</option>
-                                        <option value="maintenance">Wartung</option>
-                                    </select>
+                                    <label for="status" class="form-label fw-semibold">
+                                        Status
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </span>
+                                        <select name="status" class="form-select" id="status">
+                                            <option value="available" selected>Verfügbar</option>
+                                            <option value="maintenance">Wartung</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="address" class="form-label">Standortadresse *</label>
-                            <input type="text" name="address" class="form-control" id="address" required>
-                            <small class="form-text text-muted">Wo befindet sich der Scooter?</small>
+                            <label for="address" class="form-label fw-semibold">
+                                Standortadresse <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-geo-alt"></i>
+                                </span>
+                                <input type="text" name="address" class="form-control" id="address" 
+                                       required placeholder="z.B. Bahnhofstrasse 123, 8001 Zürich">
+                            </div>
+                            <div class="form-text">Wo befindet sich der Scooter?</div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="latitude" class="form-label">Breitengrad *</label>
-                                    <input type="number" step="0.000001" name="latitude" class="form-control" id="latitude" required>
-                                    <small class="form-text text-muted">GPS-Koordinate</small>
+                                    <label for="latitude" class="form-label fw-semibold">
+                                        Breitengrad <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group gps-input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-up-down"></i>
+                                        </span>
+                                        <input type="number" step="0.000001" name="latitude" class="form-control" id="latitude" 
+                                               required placeholder="47.3769">
+                                    </div>
+                                    <div class="form-text">GPS-Koordinate (Breitengrad)</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="longitude" class="form-label">Längengrad *</label>
-                                    <input type="number" step="0.000001" name="longitude" class="form-control" id="longitude" required>
-                                    <small class="form-text text-muted">GPS-Koordinate</small>
+                                    <label for="longitude" class="form-label fw-semibold">
+                                        Längengrad <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group gps-input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-left-right"></i>
+                                        </span>
+                                        <input type="number" step="0.000001" name="longitude" class="form-control" id="longitude" 
+                                               required placeholder="8.5417">
+                                    </div>
+                                    <div class="form-text">GPS-Koordinate (Längengrad)</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="location" class="form-label">Standortbeschreibung</label>
-                            <input type="text" name="location" class="form-control" id="location">
-                            <small class="form-text text-muted">Zusätzliche Standortinformationen</small>
+                        <div class="mb-4">
+                            <label for="location" class="form-label fw-semibold">
+                                Standortbeschreibung
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-pin-map"></i>
+                                </span>
+                                <input type="text" name="location" class="form-control" id="location" 
+                                       placeholder="z.B. Vor dem Haupteingang">
+                            </div>
+                            <div class="form-text">Zusätzliche Standortinformationen</div>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-secondary">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left"></i> Abbrechen
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Scooter erstellen
-                            </button>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary me-2" onclick="getCurrentLocation()">
+                                    <i class="bi bi-geo-alt"></i> GPS verwenden
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Scooter erstellen
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0">Hinweise</h5>
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle text-info"></i> Hinweise
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle"></i> Wichtige Informationen</h6>
-                        <ul class="mb-0">
+                    <div class="alert alert-info border-0">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-lightbulb"></i> Wichtige Informationen
+                        </h6>
+                        <ul class="mb-0 small">
                             <li>Der Identifikator muss einzigartig sein</li>
                             <li>GPS-Koordinaten sind für die Standortermittlung erforderlich</li>
                             <li>Der Batteriestand sollte aktuell sein</li>
@@ -137,29 +262,136 @@
                         </ul>
                     </div>
 
-                    <div class="alert alert-warning">
-                        <h6><i class="bi bi-exclamation-triangle"></i> Sicherheit</h6>
-                        <p class="mb-0">Stellen Sie sicher, dass der Scooter in einwandfreiem Zustand ist, bevor Sie ihn als verfügbar markieren.</p>
+                    <div class="alert alert-warning border-0">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-shield-check"></i> Sicherheit
+                        </h6>
+                        <p class="mb-0 small">
+                            Stellen Sie sicher, dass der Scooter in einwandfreiem Zustand ist, bevor Sie ihn als verfügbar markieren.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">GPS-Koordinaten</h5>
+                    <h5 class="mb-0">
+                        <i class="bi bi-geo-alt text-success"></i> GPS-Koordinaten
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Wie finde ich die Koordinaten?</strong></p>
-                    <ol>
+                    <h6 class="fw-semibold">Wie finde ich die Koordinaten?</h6>
+                    <ol class="small">
                         <li>Öffnen Sie Google Maps</li>
                         <li>Klicken Sie auf den gewünschten Standort</li>
                         <li>Kopieren Sie die Koordinaten aus der URL</li>
                         <li>Fügen Sie sie in die entsprechenden Felder ein</li>
                     </ol>
-                    <p class="mb-0"><small class="text-muted">Format: 52.520008, 13.404954</small></p>
+                    <div class="help-section p-3 rounded mt-3">
+                        <strong>Format:</strong> 47.3769, 8.5417<br>
+                        <small class="text-muted">Zürich, Schweiz (Beispiel)</small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+                document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="bi bi-check-circle"></i> GPS-Standort erfolgreich ermittelt!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('main').prepend(alert);
+                
+                // Auto-dismiss after 3 seconds
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            },
+            function(error) {
+                let message = 'GPS-Standort konnte nicht ermittelt werden.';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'GPS-Zugriff verweigert. Bitte erlauben Sie den Zugriff auf Ihren Standort.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'GPS-Informationen nicht verfügbar.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'GPS-Anfrage timeout.';
+                        break;
+                }
+                
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="bi bi-exclamation-triangle"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('main').prepend(alert);
+            }
+        );
+    } else {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-warning alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i> Ihr Browser unterstützt keine Geolocation.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('main').prepend(alert);
+    }
+}
+
+// Form validation
+document.getElementById('scooterForm').addEventListener('submit', function(e) {
+    const identifier = document.getElementById('identifier').value.trim();
+    const model = document.getElementById('model').value.trim();
+    const brand = document.getElementById('brand').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const latitude = parseFloat(document.getElementById('latitude').value);
+    const longitude = parseFloat(document.getElementById('longitude').value);
+    
+    // Basic validation
+    if (!identifier || !model || !brand || !address) {
+        e.preventDefault();
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i> Bitte füllen Sie alle Pflichtfelder aus.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('main').prepend(alert);
+        return;
+    }
+    
+    // GPS coordinate validation
+    if (isNaN(latitude) || isNaN(longitude) || 
+        latitude < -90 || latitude > 90 || 
+        longitude < -180 || longitude > 180) {
+        e.preventDefault();
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i> Bitte geben Sie gültige GPS-Koordinaten ein.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('main').prepend(alert);
+        return;
+    }
+});
+</script>
 {% endblock %}
