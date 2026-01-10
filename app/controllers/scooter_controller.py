@@ -46,7 +46,11 @@ def detail(scooter_id):
         'needs_maintenance': scooter.needs_maintenance()
     }
     
-    return render_template('scooters/detail.html', scooter=scooter, stats=stats)
+    # Generate QR code
+    from app.utils.qr_generator import generate_qr_code_data
+    qr_code_data = generate_qr_code_data(scooter)
+    
+    return render_template('scooters/detail.html', scooter=scooter, stats=stats, qr_code_data=qr_code_data)
 
 @scooter_bp.route('/create', methods=['GET', 'POST'])
 @login_required
