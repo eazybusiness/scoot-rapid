@@ -208,7 +208,7 @@
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                         <div class="battery-level h-full rounded-full {% if scooter.battery_level > 50 %}bg-gradient-to-r from-green-400 to-green-600{% elif scooter.battery_level > 20 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}" 
-                                             style="width: {{ scooter.battery_level }}%"></div>
+                                             data-battery="{{ scooter.battery_level }}"></div>
                                     </div>
                                 </div>
                                 
@@ -555,4 +555,17 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set battery level width without inline styles
+document.addEventListener('DOMContentLoaded', function() {
+    const batteryLevels = document.querySelectorAll('[data-battery]');
+    batteryLevels.forEach(function(battery) {
+        const level = battery.getAttribute('data-battery');
+        battery.style.width = level + '%';
+    });
+});
+</script>
 {% endblock %}

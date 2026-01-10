@@ -66,7 +66,7 @@
     <!-- Scooter Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for scooter in scooters %}
-        <div class="scooter-card bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up hover-lift" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+        <div class="scooter-card bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up hover-lift" data-animation-delay="{{ loop.index0 * 0.1 }}">
             <!-- Card Header -->
             <div class="bg-gradient-to-r from-scooter-blue to-blue-600 p-6">
                 <div class="flex justify-between items-start">
@@ -92,7 +92,7 @@
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                         <div class="battery-fill h-full rounded-full {% if scooter.battery_level > 50 %}bg-gradient-to-r from-green-400 to-green-600{% elif scooter.battery_level > 20 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}" 
-                             style="width: {{ scooter.battery_level }}%"></div>
+                             data-battery="{{ scooter.battery_level }}"></div>
                     </div>
                 </div>
 
@@ -169,4 +169,25 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set animation delays and battery levels without inline styles
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation delays
+    const cards = document.querySelectorAll('[data-animation-delay]');
+    cards.forEach(function(card) {
+        const delay = card.getAttribute('data-animation-delay');
+        card.style.animationDelay = delay + 's';
+    });
+    
+    // Battery levels
+    const batteryLevels = document.querySelectorAll('[data-battery]');
+    batteryLevels.forEach(function(battery) {
+        const level = battery.getAttribute('data-battery');
+        battery.style.width = level + '%';
+    });
+});
+</script>
 {% endblock %}
