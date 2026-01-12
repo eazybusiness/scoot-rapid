@@ -10,7 +10,6 @@ class Rental(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     rental_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    qr_code = db.Column(db.String(100), unique=True, index=True)
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     scooter_id = db.Column(db.Integer, db.ForeignKey('scooters.id'), nullable=False, index=True)
@@ -44,8 +43,6 @@ class Rental(db.Model):
         super(Rental, self).__init__(**kwargs)
         if not self.rental_code:
             self.rental_code = f"RNT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.user_id}"
-        if not self.qr_code:
-            self.qr_code = f"SR-RENTAL-{self.id}-{datetime.utcnow().timestamp()}"
     
     def start_rental(self):
         from app.models.scooter import Scooter
