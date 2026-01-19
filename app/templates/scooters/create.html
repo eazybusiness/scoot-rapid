@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block title %}Scooter Erstellen - ScootRapid{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-input {
+        transition: all 0.3s ease;
+        border: 2px solid #e5e7eb;
+    }
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        transform: translateY(-1px);
+    }
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+    }
+    .help-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-left: 4px solid #3b82f6;
+    }
+    .gps-button {
+        transition: all 0.3s ease;
+    }
+    .gps-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .step-indicator {
+        transition: all 0.3s ease;
+    }
+    .step-indicator.active {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8 fade-in">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{{ url_for('main.dashboard') }}" class="text-gray-700 hover:text-scooter-blue inline-flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <a href="{{ url_for('scooters.list_scooters') }}" class="text-gray-700 hover:text-scooter-blue ml-1 md:ml-2 font-medium">Scooter</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-gray-500 ml-1 md:ml-2 font-medium">Erstellen</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <span class="text-scooter-blue">Neuen</span> Scooter erstellen
+                </h1>
+                <p class="text-gray-600">Fügen Sie einen neuen Scooter zur Flotte hinzu</p>
+            </div>
+            <div class="step-indicator active px-4 py-2 rounded-full text-sm font-semibold">
+                Schritt 1 von 1: Grundinformationen
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <form method="POST" id="scooterForm" class="space-y-6 fade-in">
+                <!-- Basic Information Card -->
+                <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-scooter-blue to-blue-600 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Scooter-Informationen
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="identifier" class="form-label block mb-2">
+                                    Identifikator <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="identifier" id="identifier" required
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="z.B. SC001">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Eindeutige Kennung für den Scooter</p>
+                            </div>
+                            
+                            <div>
+                                <label for="license_plate" class="form-label block mb-2">Kennzeichen</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="license_plate" id="license_plate"
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="z.B. ZH-AB 123">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Offizielles Kennzeichen (optional)</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="model" class="form-label block mb-2">
+                                    Modell <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="model" id="model" required
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="z.B. Mi Electric Scooter">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="brand" class="form-label block mb-2">
+                                    Marke <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="brand" id="brand" required
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="z.B. Xiaomi">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="battery_level" class="form-label block mb-2">Batteriestand (%)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="number" name="battery_level" id="battery_level"
+                                           min="0" max="100" value="100"
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-sm">%</span>
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">0-100% - Aktueller Ladezustand</p>
+                            </div>
+                            
+                            <div>
+                                <label for="status" class="form-label block mb-2">Status</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <select name="status" id="status"
+                                            class="form-input pl-10 w-full px-4 py-3 rounded-lg appearance-none">
+                                        <option value="available">Verfügbar</option>
+                                        <option value="maintenance">Wartung</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Information Card -->
+                <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-scooter-green to-green-600 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Standortinformationen
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <div>
+                            <label for="address" class="form-label block mb-2">
+                                Standortadresse <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <input type="text" name="address" id="address" required
+                                       class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                       placeholder="z.B. Bahnhofstrasse 123, 8001 Zürich">
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">Wo befindet sich der Scooter?</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="latitude" class="form-label block mb-2">
+                                    Breitengrad <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        </svg>
+                                    </div>
+                                    <input type="number" step="0.000001" name="latitude" id="latitude" required
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="47.3769">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">GPS-Koordinate (Breitengrad)</p>
+                            </div>
+                            
+                            <div>
+                                <label for="longitude" class="form-label block mb-2">
+                                    Längengrad <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        </svg>
+                                    </div>
+                                    <input type="number" step="0.000001" name="longitude" id="longitude" required
+                                           class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                           placeholder="8.5417">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">GPS-Koordinate (Längengrad)</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="location" class="form-label block mb-2">Standortbeschreibung</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <input type="text" name="location" id="location"
+                                       class="form-input pl-10 w-full px-4 py-3 rounded-lg"
+                                       placeholder="z.B. Vor dem Haupteingang">
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">Zusätzliche Standortinformationen</p>
+                        </div>
+
+                        <!-- GPS Button -->
+                        <div class="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                            <button type="button" onclick="getCurrentLocation()" 
+                                    class="gps-button bg-scooter-blue text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                GPS-Standort verwenden
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{{ url_for('scooters.list_scooters') }}" 
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Abbrechen
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-3 bg-gradient-to-r from-scooter-blue to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Scooter erstellen
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Help Card -->
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+                <div class="bg-gradient-to-r from-scooter-orange to-orange-600 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Hinweise
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-scooter-blue">
+                        <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Wichtige Informationen
+                        </h4>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            <li>• Der Identifikator muss einzigartig sein</li>
+                            <li>• GPS-Koordinaten sind für die Standortermittlung erforderlich</li>
+                            <li>• Der Batteriestand sollte aktuell sein</li>
+                            <li>• Nur verfügbare Scooter können von Kunden gemietet werden</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 bg-yellow-50 rounded-lg border-l-4 border-scooter-orange">
+                        <h4 class="font-semibold text-yellow-900 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            Sicherheit
+                        </h4>
+                        <p class="text-sm text-yellow-800">
+                            Stellen Sie sicher, dass der Scooter in einwandfreiem Zustand ist, bevor Sie ihn als verfügbar markieren.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPS Help Card -->
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+                <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        GPS-Koordinaten
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <h4 class="font-semibold text-gray-900 mb-3">Wie finde ich die Koordinaten?</h4>
+                    <ol class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <span class="bg-scooter-blue text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2 mt-0.5">1</span>
+                            <span>Öffnen Sie Google Maps</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-scooter-blue text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2 mt-0.5">2</span>
+                            <span>Klicken Sie auf den gewünschten Standort</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-scooter-blue text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2 mt-0.5">3</span>
+                            <span>Kopieren Sie die Koordinaten aus der URL</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-scooter-blue text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2 mt-0.5">4</span>
+                            <span>Fügen Sie sie in die entsprechenden Felder ein</span>
+                        </li>
+                    </ol>
+                    <div class="help-section p-3 rounded-lg mt-4">
+                        <p class="text-sm font-medium text-gray-900">Format: 47.3769, 8.5417</p>
+                        <p class="text-xs text-gray-600 mt-1">Zürich, Schweiz (Beispiel)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+                document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+                
+                // Show success message
+                showNotification('GPS-Standort erfolgreich ermittelt!', 'success');
+            },
+            function(error) {
+                let message = 'GPS-Standort konnte nicht ermittelt werden.';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'GPS-Zugriff verweigert. Bitte erlauben Sie den Zugriff auf Ihren Standort.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'GPS-Informationen nicht verfügbar.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'GPS-Anfrage timeout.';
+                        break;
+                }
+                showNotification(message, 'error');
+            }
+        );
+    } else {
+        showNotification('Ihr Browser unterstützt keine Geolocation.', 'warning');
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg fade-in ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 
+        'bg-yellow-500 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                ${type === 'success' ? '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+                  type === 'error' ? '<path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+                  '<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Form validation
+document.getElementById('scooterForm').addEventListener('submit', function(e) {
+    const identifier = document.getElementById('identifier').value.trim();
+    const model = document.getElementById('model').value.trim();
+    const brand = document.getElementById('brand').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const latitude = parseFloat(document.getElementById('latitude').value);
+    const longitude = parseFloat(document.getElementById('longitude').value);
+    
+    // Basic validation
+    if (!identifier || !model || !brand || !address) {
+        e.preventDefault();
+        showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+        return;
+    }
+    
+    // GPS coordinate validation
+    if (isNaN(latitude) || isNaN(longitude) || 
+        latitude < -90 || latitude > 90 || 
+        longitude < -180 || longitude > 180) {
+        e.preventDefault();
+        showNotification('Bitte geben Sie gültige GPS-Koordinaten ein.', 'error');
+        return;
+    }
+});
+</script>
+{% endblock %}

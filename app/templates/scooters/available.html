@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Verfügbare Scooter - ScootRapid{% endblock %}
+
+{% block extra_css %}
+<style>
+    .scooter-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+    }
+    .scooter-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #3b82f6;
+    }
+    .battery-fill {
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .pulse-badge {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8 fade-in-up">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    <span class="text-scooter-blue">Verfügbare</span> Scooter
+                </h1>
+                <p class="text-gray-600 text-lg">Finden Sie Ihren perfekten Scooter für die nächste Fahrt</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <div class="bg-scooter-green text-white px-6 py-3 rounded-full font-semibold pulse-badge">
+                    {{ scooters|length }} Scooter verfügbar
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if scooters %}
+    <!-- Scooter Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for scooter in scooters %}
+        <div class="scooter-card bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up hover-lift" data-animation-delay="{{ loop.index0 * 0.1 }}">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-r from-scooter-blue to-blue-600 p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-1">{{ scooter.identifier }}</h3>
+                        <p class="text-blue-100">{{ scooter.brand }} {{ scooter.model }}</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span class="text-white text-sm font-medium">Verfügbar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-6">
+                <!-- Battery Indicator -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600 font-medium">Batteriestand</span>
+                        <span class="font-bold {% if scooter.battery_level > 50 %}text-green-600{% elif scooter.battery_level > 20 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ scooter.battery_level }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="battery-fill h-full rounded-full {% if scooter.battery_level > 50 %}bg-gradient-to-r from-green-400 to-green-600{% elif scooter.battery_level > 20 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}" 
+                             data-battery="{{ scooter.battery_level }}"></div>
+                    </div>
+                </div>
+
+                <!-- Specifications -->
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-5 h-5 mr-2 text-scooter-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>Max. Geschwindigkeit</span>
+                        </div>
+                        <span class="font-semibold text-gray-900">{{ scooter.max_speed }} km/h</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-5 h-5 mr-2 text-scooter-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                            </svg>
+                            <span>Reichweite</span>
+                        </div>
+                        <span class="font-semibold text-gray-900">{{ scooter.range_km }} km</span>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                {% if scooter.address %}
+                <div class="mb-6 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 text-scooter-blue mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <p class="text-gray-700 text-sm">{{ scooter.address[:60] }}{% if scooter.address|length > 60 %}...{% endif %}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" 
+                       class="flex-1 bg-gray-100 text-gray-700 text-center py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200 hover:shadow-md">
+                        <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Details
+                    </a>
+                    <a href="{{ url_for('rentals.start', scooter_id=scooter.id) }}" 
+                       class="flex-1 bg-gradient-to-r from-scooter-blue to-blue-600 text-white text-center py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:shadow-lg transform hover:scale-105">
+                        <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Jetzt mieten
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 fade-in-up">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Keine Scooter verfügbar</h3>
+        <p class="text-gray-600 text-lg mb-8">Bitte versuchen Sie es später erneut</p>
+        <button onclick="location.reload()" class="bg-scooter-blue text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+            Seite aktualisieren
+        </button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set animation delays and battery levels without inline styles
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation delays
+    const cards = document.querySelectorAll('[data-animation-delay]');
+    cards.forEach(function(card) {
+        const delay = card.getAttribute('data-animation-delay');
+        card.style.animationDelay = delay + 's';
+    });
+    
+    // Battery levels
+    const batteryLevels = document.querySelectorAll('[data-battery]');
+    batteryLevels.forEach(function(battery) {
+        const level = battery.getAttribute('data-battery');
+        battery.style.width = level + '%';
+    });
+});
+</script>
+{% endblock %}

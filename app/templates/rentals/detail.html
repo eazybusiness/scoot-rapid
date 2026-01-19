@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Ausleihe Details - ScootRapid{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+    }
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .form-input {
+        transition: all 0.3s ease;
+        border: 2px solid #e5e7eb;
+    }
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        transform: translateY(-1px);
+    }
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8 fade-in-up">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{{ url_for('main.dashboard') }}" class="text-gray-700 hover:text-scooter-blue inline-flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <a href="{{ url_for('rentals.list_rentals') }}" class="text-gray-700 hover:text-scooter-blue ml-1 md:ml-2 font-medium">Meine Ausleihen</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span class="text-gray-500 ml-1 md:ml-2 font-medium">Details</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="flex items-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                <span class="text-scooter-blue">Ausleihe</span> Details
+            </h1>
+            <div class="ml-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if rental.status == 'completed' %}bg-green-100 text-green-800
+                    {% elif rental.status == 'cancelled' %}bg-gray-100 text-gray-800
+                    {% elif rental.status == 'active' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {% if rental.status == 'completed' %}
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Abgeschlossen
+                    {% elif rental.status == 'cancelled' %}
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Storniert
+                    {% elif rental.status == 'active' %}
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Aktiv
+                    {% else %}
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Gebucht
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if rental %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Rental Information Card -->
+            <div class="detail-card bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up" style="animation-delay: 0.1s;">
+                <div class="bg-gradient-to-r from-scooter-blue to-blue-600 px-6 py-4">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Ausleihe #{{ rental.id }}
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Basic Information -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-scooter-blue flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Informationen
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Benutzer</span>
+                                    <span class="font-semibold text-gray-900">
+                                        {% if rental.user %}
+                                        {{ rental.user.first_name }} {{ rental.user.last_name }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Scooter</span>
+                                    <span class="font-semibold text-gray-900">
+                                        {% if rental.scooter %}
+                                        {{ rental.scooter.model }} ({{ rental.scooter.license_plate }})
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Startzeit</span>
+                                    <span class="font-semibold text-gray-900">{{ rental.start_time.strftime('%d.%m.%Y %H:%M') if rental.start_time else '-' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Endzeit</span>
+                                    <span class="font-semibold text-gray-900">{{ rental.end_time.strftime('%d.%m.%Y %H:%M') if rental.end_time else '-' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-gray-600">Dauer</span>
+                                    <span class="font-semibold text-gray-900">{{ rental.get_duration_formatted() }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Information -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-scooter-green flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Kosten
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Startgebühr</span>
+                                    <span class="font-semibold text-gray-900">€{{ "%.2f"|format(rental.base_fee or 1.50) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Minutenpreis</span>
+                                    <span class="font-semibold text-gray-900">€{{ "%.2f"|format(rental.per_minute_rate or 0.30) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-gray-600">Gesamtkosten</span>
+                                    <span class="font-semibold text-scooter-orange text-lg">€{{ "%.2f"|format(rental.total_cost or 0) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-gray-600">Bezahlstatus</span>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                        {% if rental.total_cost > 0 %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {% if rental.total_cost > 0 %}
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                        </svg>
+                                        Offen
+                                        {% else %}
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Bezahlt
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Information -->
+                    {% if rental.start_latitude and rental.start_longitude %}
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-scooter-blue">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-scooter-blue mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-blue-900 mb-2">Standorte</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-blue-800"><strong>Start:</strong> {{ rental.start_latitude }}, {{ rental.start_longitude }}</p>
+                                    </div>
+                                    {% if rental.end_latitude and rental.end_longitude %}
+                                    <div>
+                                        <p class="text-sm text-blue-800"><strong>Ende:</strong> {{ rental.end_latitude }}, {{ rental.end_longitude }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Rating Information -->
+                    {% if rental.rating %}
+                    <div class="mt-6 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-600 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <div>
+                                <h4 class="font-semibold text-yellow-800 mb-2">Bewertung</h4>
+                                <div class="flex items-center mb-2">
+                                    {% for i in range(5) %}
+                                    {% if i < rental.rating %}
+                                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    {% else %}
+                                    <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <span class="ml-2 text-sm text-yellow-800 font-medium">({{ rental.rating }}/5)</span>
+                                </div>
+                                {% if rental.feedback %}
+                                <p class="text-sm text-yellow-700">{{ rental.feedback }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Actions Card -->
+            <div class="detail-card bg-white rounded-2xl shadow-lg overflow-hidden fade-in-up" style="animation-delay: 0.2s;">
+                <div class="bg-gradient-to-r from-scooter-orange to-orange-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Aktionen
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% if rental.status == 'active' %}
+                    <!-- End Rental Form -->
+                    <form method="POST" action="{{ url_for('rentals.end', rental_id=rental.id) }}" class="space-y-4">
+                        <div>
+                            <label for="latitude" class="block text-sm font-medium text-gray-700 mb-2">
+                                Breitengrad <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" step="0.000001" name="latitude" required
+                                   class="form-input w-full px-4 py-3 rounded-lg">
+                        </div>
+                        <div>
+                            <label for="longitude" class="block text-sm font-medium text-gray-700 mb-2">
+                                Längengrad <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" step="0.000001" name="longitude" required
+                                   class="form-input w-full px-4 py-3 rounded-lg">
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                            </svg>
+                            Ausleihe beenden
+                        </button>
+                    </form>
+                    
+                    <div class="border-t border-gray-200 pt-4">
+                    
+                    <!-- Cancel Rental Form -->
+                    <form method="POST" action="{{ url_for('rentals.cancel', rental_id=rental.id) }}" class="space-y-4">
+                        <div>
+                            <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                                Grund (optional)
+                            </label>
+                            <textarea name="reason" rows="3"
+                                      class="form-input w-full px-4 py-3 rounded-lg"></textarea>
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Stornieren
+                        </button>
+                    </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- Rating Form -->
+                    {% if rental.status == 'completed' and not rental.rating %}
+                    <form method="POST" action="{{ url_for('rentals.rate', rental_id=rental.id) }}" class="space-y-4">
+                        <div>
+                            <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
+                                Bewertung <span class="text-red-500">*</span>
+                            </label>
+                            <select name="rating" required
+                                    class="form-input w-full px-4 py-3 rounded-lg">
+                                <option value="">Sterne wählen...</option>
+                                <option value="5">5 Sterne</option>
+                                <option value="4">4 Sterne</option>
+                                <option value="3">3 Sterne</option>
+                                <option value="2">2 Sterne</option>
+                                <option value="1">1 Stern</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                                Feedback (optional)
+                            </label>
+                            <textarea name="feedback" rows="3"
+                                      class="form-input w-full px-4 py-3 rounded-lg"></textarea>
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-scooter-blue text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Bewerten
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- Back Button -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <a href="{{ url_for('rentals.list_rentals') }}" 
+                           class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Zurück zur Liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Not Found State -->
+    <div class="text-center py-16 fade-in-up">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Ausleihe nicht gefunden</h3>
+        <p class="text-gray-600 text-lg mb-8">Die gesuchte Ausleihe existiert nicht oder wurde gelöscht.</p>
+        <a href="{{ url_for('rentals.list_rentals') }}" 
+           class="bg-scooter-blue text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors inline-flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Zurück zur Liste
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
