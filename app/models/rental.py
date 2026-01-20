@@ -12,7 +12,7 @@ class Rental(db.Model):
     rental_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    scooter_id = db.Column(db.Integer, db.ForeignKey('scooters.id'), nullable=False, index=True)
+    scooter_id = db.Column(db.Integer, db.ForeignKey('scooters.id'), index=True)
     
     start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     end_time = db.Column(db.DateTime)
@@ -42,10 +42,10 @@ class Rental(db.Model):
     def __init__(self, **kwargs):
         super(Rental, self).__init__(**kwargs)
         
-        # Critical validation: scooter_id must not be None for new rentals
+        # Validation: scooter_id should not be None for new rentals
         # But allow None for existing rentals (when scooter is deleted)
-        if self.scooter_id is None and not hasattr(self, '_allow_none_scooter_id'):
-            raise ValueError("scooter_id cannot be None - rental must be associated with a scooter")
+        if self.scooter_id is None and not kwargs.get('_allow_none_scooter_id', False):
+            raise ValueError("scooter_id cannot be None for new rentals - rental must be associated with a scooter")
         
         if not self.rental_code:
             self.rental_code = f"RNT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.user_id}"
