@@ -15,6 +15,7 @@ class Scooter(db.Model):
     
     model = db.Column(db.String(100), nullable=False)
     brand = db.Column(db.String(100), nullable=False)
+    license_plate = db.Column(db.String(20))
     
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)

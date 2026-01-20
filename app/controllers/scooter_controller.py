@@ -81,6 +81,7 @@ def create():
             from app import db
             scooter = Scooter(
                 identifier=identifier,
+                license_plate=request.form.get('license_plate'),
                 model=request.form.get('model'),
                 brand=request.form.get('brand'),
                 latitude=float(request.form.get('latitude')),
