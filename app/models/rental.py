@@ -41,6 +41,11 @@ class Rental(db.Model):
     
     def __init__(self, **kwargs):
         super(Rental, self).__init__(**kwargs)
+        
+        # Critical validation: scooter_id must not be None
+        if self.scooter_id is None:
+            raise ValueError("scooter_id cannot be None - rental must be associated with a scooter")
+        
         if not self.rental_code:
             self.rental_code = f"RNT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.user_id}"
     
@@ -64,6 +69,10 @@ class Rental(db.Model):
     def end_rental(self, end_latitude=None, end_longitude=None):
         if self.status != 'active':
             raise ValueError("Rental is not active")
+        
+        # Debug: Ensure scooter_id is not None
+        if self.scooter_id is None:
+            raise ValueError("scooter_id cannot be None when ending rental")
         
         self.end_time = datetime.utcnow()
         self.status = 'completed'
@@ -89,6 +98,10 @@ class Rental(db.Model):
     def cancel_rental(self, reason=None):
         if self.status != 'active':
             raise ValueError("Only active rentals can be cancelled")
+        
+        # Debug: Ensure scooter_id is not None
+        if self.scooter_id is None:
+            raise ValueError("scooter_id cannot be None when cancelling rental")
         
         self.status = 'cancelled'
         self.end_time = datetime.utcnow()
@@ -151,6 +164,10 @@ class Rental(db.Model):
         
         if not (1 <= rating <= 5):
             raise ValueError("Rating must be between 1 and 5")
+        
+        # Debug: Ensure scooter_id is not None
+        if self.scooter_id is None:
+            raise ValueError("scooter_id cannot be None when updating rental")
         
         self.rating = rating
         self.feedback = feedback
