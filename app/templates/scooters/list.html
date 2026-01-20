@@ -3,7 +3,22 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold">Alle Scooter</h2>
+        <div>
+            <h2 class="text-3xl font-bold">
+                {% if current_user.is_provider() %}
+                    Meine Scooter
+                {% else %}
+                    Alle Scooter
+                {% endif %}
+            </h2>
+            <p class="text-gray-600 mt-1">
+                {% if current_user.is_provider() %}
+                    Verwalten Sie Ihre Scooter-Flotte
+                {% else %}
+                    Verfügbare Scooter in Ihrer Nähe
+                {% endif %}
+            </p>
+        </div>
         {% if current_user.can_manage_scooters() %}
         <a href="{{ url_for('scooters.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Neuer Scooter</a>
         {% endif %}
@@ -46,7 +61,18 @@
     
     {% if not scooters %}
     <div class="bg-white p-8 rounded-lg shadow-md text-center">
-        <p class="text-gray-600">Keine Scooter verfügbar</p>
+        <p class="text-gray-600">
+            {% if current_user.is_provider() %}
+                Sie haben noch keine Scooter hinzugefügt
+            {% else %}
+                Keine Scooter verfügbar
+            {% endif %}
+        </p>
+        {% if current_user.is_provider() %}
+        <a href="{{ url_for('scooters.create') }}" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            Ersten Scooter hinzufügen
+        </a>
+        {% endif %}
     </div>
     {% endif %}
 </div>

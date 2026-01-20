@@ -110,27 +110,6 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = '...') -> str:
     
     return text[:max_length - len(suffix)] + suffix
 
-def get_status_badge_class(status: str) -> str:
-    """
-    Get Bootstrap badge class for status
-    """
-    status_classes = {
-        'available': 'success',
-        'in_use': 'primary',
-        'maintenance': 'warning',
-        'offline': 'secondary',
-        'active': 'primary',
-        'completed': 'success',
-        'cancelled': 'secondary',
-        'overdue': 'danger',
-        'pending': 'warning',
-        'processing': 'info',
-        'failed': 'danger',
-        'refunded': 'secondary'
-    }
-    
-    return status_classes.get(status, 'secondary')
-
 def paginate(items: list, page: int = 1, per_page: int = 20) -> dict:
     """
     Paginate a list of items

@@ -14,6 +14,10 @@ def list_rentals():
     """List rentals"""
     if current_user.is_admin():
         rentals = Rental.query.order_by(Rental.created_at.desc()).limit(50).all()
+    elif current_user.is_provider():
+        # Show rentals of provider's scooters
+        provider_scooter_ids = [s.id for s in Scooter.query.filter_by(provider_id=current_user.id).all()]
+        rentals = Rental.query.filter(Rental.scooter_id.in_(provider_scooter_ids)).order_by(Rental.created_at.desc()).limit(50).all()
     else:
         rentals = Rental.query.filter_by(user_id=current_user.id).order_by(Rental.created_at.desc()).limit(50).all()
     

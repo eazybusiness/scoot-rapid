@@ -2,129 +2,145 @@
 
 {% block title %}Scooter Bearbeiten - ScootRapid{% endblock %}
 
+{% block extra_css %}
+<style>
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('scooters.list_scooters') }}">Scooter</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}">{{ scooter.model }}</a></li>
-                    <li class="breadcrumb-item active">Bearbeiten</li>
-                </ol>
-            </nav>
-            <h2 class="mb-4">
-                <i class="bi bi-pencil"></i> Scooter bearbeiten
-            </h2>
-        </div>
-    </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     {% if scooter %}
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">{{ scooter.model }} ({{ scooter.license_plate }})</h5>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden fade-in-up">
+                <div class="bg-gradient-to-r from-scooter-blue to-blue-600 px-6 py-4">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Scooter Informationen
+                    </h2>
                 </div>
-                <div class="card-body">
+                
+                <div class="p-6">
                     <form method="POST">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="identifier" class="form-label">Identifikator *</label>
-                                    <input type="text" name="identifier" class="form-control" id="identifier" 
-                                           value="{{ scooter.identifier }}" required>
-                                    <small class="form-text text-muted">Eindeutige Kennung für den Scooter</small>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="identifier" class="block text-sm font-medium text-gray-700 mb-2">Identifikator *</label>
+                                <input type="text" name="identifier" id="identifier" 
+                                       value="{{ scooter.identifier }}" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                                <p class="mt-1 text-sm text-gray-500">Eindeutige Kennung für den Scooter</p>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="license_plate" class="form-label">Kennzeichen</label>
-                                    <input type="text" name="license_plate" class="form-control" id="license_plate" 
-                                           value="{{ scooter.license_plate }}">
-                                    <small class="form-text text-muted">Offizielles Kennzeichen (optional)</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="model" class="form-label">Modell *</label>
-                                    <input type="text" name="model" class="form-control" id="model" 
-                                           value="{{ scooter.model }}" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="brand" class="form-label">Marke *</label>
-                                    <input type="text" name="brand" class="form-control" id="brand" 
-                                           value="{{ scooter.brand }}" required>
-                                </div>
+                            
+                            <div>
+                                <label for="license_plate" class="block text-sm font-medium text-gray-700 mb-2">Kennzeichen</label>
+                                <input type="text" name="license_plate" id="license_plate" 
+                                       value="{{ scooter.license_plate }}"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                                <p class="mt-1 text-sm text-gray-500">Offizielles Kennzeichen (optional)</p>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="battery_level" class="form-label">Batteriestand (%)</label>
-                                    <input type="number" name="battery_level" class="form-control" id="battery_level" 
-                                           min="0" max="100" value="{{ scooter.battery_level }}">
-                                    <small class="form-text text-muted">0-100%</small>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label for="brand" class="block text-sm font-medium text-gray-700 mb-2">Marke</label>
+                                <input type="text" name="brand" id="brand" 
+                                       value="{{ scooter.brand }}"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select name="status" class="form-control" id="status">
-                                        <option value="available" {% if scooter.status == 'available' %}selected{% endif %}>Verfügbar</option>
-                                        <option value="in_use" {% if scooter.status == 'in_use' %}selected{% endif %}>In Benutzung</option>
-                                        <option value="maintenance" {% if scooter.status == 'maintenance' %}selected{% endif %}>Wartung</option>
-                                    </select>
-                                </div>
+                            
+                            <div>
+                                <label for="model" class="block text-sm font-medium text-gray-700 mb-2">Modell</label>
+                                <input type="text" name="model" id="model" 
+                                       value="{{ scooter.model }}"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Standortadresse *</label>
-                            <input type="text" name="address" class="form-control" id="address" 
-                                   value="{{ scooter.address }}" required>
-                            <small class="form-text text-muted">Wo befindet sich der Scooter?</small>
+                        <div class="mt-6">
+                            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Standortadresse *</label>
+                            <input type="text" name="address" id="address" 
+                                   value="{{ scooter.address }}" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                            <p class="mt-1 text-sm text-gray-500">Wo befindet sich der Scooter?</p>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="latitude" class="form-label">Breitengrad *</label>
-                                    <input type="number" step="0.000001" name="latitude" class="form-control" id="latitude" 
-                                           value="{{ scooter.latitude }}" required>
-                                    <small class="form-text text-muted">GPS-Koordinate</small>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label for="latitude" class="block text-sm font-medium text-gray-700 mb-2">Breitengrad *</label>
+                                <input type="number" step="0.000001" name="latitude" id="latitude" 
+                                       value="{{ scooter.latitude }}" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                                <p class="mt-1 text-sm text-gray-500">GPS-Koordinate</p>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="longitude" class="form-label">Längengrad *</label>
-                                    <input type="number" step="0.000001" name="longitude" class="form-control" id="longitude" 
-                                           value="{{ scooter.longitude }}" required>
-                                    <small class="form-text text-muted">GPS-Koordinate</small>
-                                </div>
+                            
+                            <div>
+                                <label for="longitude" class="block text-sm font-medium text-gray-700 mb-2">Längengrad *</label>
+                                <input type="number" step="0.000001" name="longitude" id="longitude" 
+                                       value="{{ scooter.longitude }}" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                                <p class="mt-1 text-sm text-gray-500">GPS-Koordinate</p>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="location" class="form-label">Standortbeschreibung</label>
-                            <input type="text" name="location" class="form-control" id="location" 
-                                   value="{{ scooter.location }}">
-                            <small class="form-text text-muted">Zusätzliche Standortinformationen</small>
+                        <div class="mt-6">
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Standortbeschreibung</label>
+                            <input type="text" name="location" id="location" 
+                                   value="{{ scooter.location }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                            <p class="mt-1 text-sm text-gray-500">Zusätzliche Standortinformationen</p>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Abbrechen
+                        <div class="mt-6">
+                            <label for="battery_level" class="block text-sm font-medium text-gray-700 mb-2">Batteriestand (%)</label>
+                            <input type="number" name="battery_level" id="battery_level" 
+                                   min="0" max="100" value="{{ scooter.battery_level }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                            <p class="mt-1 text-sm text-gray-500">Aktuale Batteriestand in Prozent</p>
+                        </div>
+
+                        <div class="mt-6">
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select name="status" id="status"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
+                                <option value="available" {% if scooter.status == 'available' %}selected{% endif %}>Verfügbar</option>
+                                <option value="in_use" {% if scooter.status == 'in_use' %}selected{% endif %}>In Benutzung</option>
+                                <option value="maintenance" {% if scooter.status == 'maintenance' %}selected{% endif %}>Wartung</option>
+                            </select>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                            <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" 
+                               class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-scooter-blue transition-colors">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                                </svg>
+                                Abbrechen
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-pencil"></i> Änderungen speichern
+                            
+                            <button type="submit" 
+                                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-scooter-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-scooter-blue transition-colors">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Änderungen speichern
                             </button>
                         </div>
                     </form>
@@ -132,19 +148,26 @@
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Aktueller Status</h5>
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Current Status -->
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden fade-in-up" style="animation-delay: 0.1s;">
+                <div class="bg-gradient-to-r from-gray-600 to-gray-800 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Aktueller Status
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <div>
-                            <span class="badge 
-                                {% if scooter.status == 'available' %}bg-success
-                                {% elif scooter.status == 'in_use' %}bg-warning
-                                {% else %}bg-danger{% endif %}">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Status</span>
+                        <div class="mt-1">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if scooter.status == 'available' %}bg-green-100 text-green-800
+                                {% elif scooter.status == 'in_use' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
                                 {% if scooter.status == 'available' %}Verfügbar
                                 {% elif scooter.status == 'in_use' %}In Benutzung
                                 {% else %}Wartung{% endif %}
@@ -152,62 +175,96 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Batteriestand</label>
-                        <div class="progress">
-                            <div class="progress-bar 
-                                {% if scooter.battery_level > 50 %}bg-success
-                                {% elif scooter.battery_level > 20 %}bg-warning
-                                {% else %}bg-danger{% endif %}" 
-                                 style="width: {{ scooter.battery_level }}%;">
-                                {{ scooter.battery_level }}%
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Batteriestand</span>
+                        <div class="mt-2">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full {% if scooter.battery_level > 50 %}bg-green-500{% elif scooter.battery_level > 20 %}bg-yellow-500{% else %}bg-red-500{% endif %}" 
+                                     style="width: {{ scooter.battery_level }}%"></div>
                             </div>
+                            <p class="mt-1 text-sm text-gray-600">{{ scooter.battery_level }}%</p>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Standort</label>
-                        <p class="mb-0">{{ scooter.address }}</p>
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Standort</span>
+                        <p class="mt-1 text-sm text-gray-900">{{ scooter.address }}</p>
                         {% if scooter.latitude and scooter.longitude %}
-                        <small class="text-muted">{{ scooter.latitude }}, {{ scooter.longitude }}</small>
+                        <p class="text-xs text-gray-500">{{ scooter.latitude }}, {{ scooter.longitude }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0">Aktionen</h5>
+            <!-- Actions -->
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden fade-in-up" style="animation-delay: 0.2s;">
+                <div class="bg-gradient-to-r from-scooter-orange to-orange-600 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Aktionen
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" class="btn btn-outline-primary btn-block mb-2">
-                        <i class="bi bi-eye"></i> Details ansehen
+                <div class="p-6 space-y-3">
+                    <a href="{{ url_for('scooters.detail', scooter_id=scooter.id) }}" 
+                       class="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-scooter-blue transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Details ansehen
                     </a>
                     
                     <form method="POST" action="{{ url_for('scooters.delete', scooter_id=scooter.id) }}">
-                        <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('Scooter wirklich löschen?')">
-                            <i class="bi bi-trash"></i> Scooter löschen
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                onclick="return confirm('Sind Sie sicher, dass Sie diesen Scooter löschen möchten?')">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Scooter löschen
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0">Warnhinweise</h5>
+            <!-- Warnings -->
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden fade-in-up" style="animation-delay: 0.3s;">
+                <div class="bg-gradient-to-r from-yellow-500 to-orange-600 px-6 py-4">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        Warnhinweise
+                    </h3>
                 </div>
-                <div class="card-body">
+                <div class="p-6 space-y-3">
                     {% if scooter.battery_level < 20 %}
-                    <div class="alert alert-warning">
-                        <i class="bi bi-battery-low"></i> <strong>Niedriger Batteriestand!</strong><br>
-                        <small>Der Scooter sollte bald aufgeladen werden.</small>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-600 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            <div>
+                                <h4 class="text-yellow-800 font-semibold">Niedriger Batteriestand!</h4>
+                                <p class="text-yellow-700 text-sm">Der Scooter sollte bald aufgeladen werden.</p>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
 
                     {% if scooter.status == 'in_use' %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> <strong>Scooter in Benutzung</strong><br>
-                        <small>Der Scooter kann nicht bearbeitet werden, während er in Benutzung ist.</small>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                            </svg>
+                            <div>
+                                <h4 class="text-blue-800 font-semibold">Scooter in Benutzung</h4>
+                                <p class="text-blue-700 text-sm">Der Scooter kann nicht bearbeitet werden, während er in Benutzung ist.</p>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -215,12 +272,16 @@
         </div>
     </div>
     {% else %}
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-danger">
-                <h5>Scooter nicht gefunden</h5>
-                <p>Der gesuchte Scooter existiert nicht oder wurde gelöscht.</p>
-                <a href="{{ url_for('scooters.list_scooters') }}" class="btn btn-primary">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div class="flex">
+            <svg class="w-6 h-6 text-red-600 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div>
+                <h3 class="text-red-800 font-semibold text-lg">Scooter nicht gefunden</h3>
+                <p class="text-red-700">Der gesuchte Scooter existiert nicht oder wurde gelöscht.</p>
+                <a href="{{ url_for('scooters.list_scooters') }}" 
+                   class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                     Zurück zur Liste
                 </a>
             </div>

@@ -152,11 +152,11 @@
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-gray-600">Startgebühr</span>
-                                    <span class="font-semibold text-gray-900">€1.50</span>
+                                    <span class="font-semibold text-gray-900">CHF 1.50</span>
                                 </div>
                                 <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-gray-600">Preis/Minute</span>
-                                    <span class="font-semibold text-gray-900">€0.30</span>
+                                    <span class="font-semibold text-gray-900">CHF 0.30</span>
                                 </div>
                                 <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-gray-600">Max. Dauer</span>
@@ -258,7 +258,7 @@
                                 </div>
                                 <input type="number" step="0.000001" name="latitude" required
                                        value="{{ scooter.latitude or '' }}"
-                                       class="form-input pl-10 w-full px-4 py-3 rounded-lg">
+                                       class="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
                             </div>
                             <p class="mt-1 text-sm text-gray-500">GPS-Koordinate des Startorts</p>
                         </div>
@@ -275,7 +275,7 @@
                                 </div>
                                 <input type="number" step="0.000001" name="longitude" required
                                        value="{{ scooter.longitude or '' }}"
-                                       class="form-input pl-10 w-full px-4 py-3 rounded-lg">
+                                       class="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-scooter-blue focus:border-transparent">
                             </div>
                             <p class="mt-1 text-sm text-gray-500">GPS-Koordinate des Startorts</p>
                         </div>

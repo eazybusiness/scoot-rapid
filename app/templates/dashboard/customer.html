@@ -96,7 +96,7 @@
                             </svg>
                             <div>
                                 <p class="text-sm text-gray-600">Aktuelle Kosten</p>
-                                <p class="font-bold text-scooter-orange text-lg">€{{ "%.2f"|format(active_rental.calculate_cost()) }}</p>
+                                <p class="font-bold text-scooter-orange text-lg">CHF {{ "%.2f"|format(active_rental.calculate_cost()) }}</p>
                             </div>
                         </div>
                         <div class="pt-4">
@@ -144,7 +144,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600">Gesamtausgaben</p>
-                    <p class="text-2xl font-bold text-scooter-green">€{{ "%.2f"|format(user_stats.total_spent) }}</p>
+                    <p class="text-2xl font-bold text-scooter-green">CHF {{ "%.2f"|format(user_stats.total_spent) }}</p>
                 </div>
             </div>
         </div>
@@ -265,7 +265,7 @@
                                 {{ rental.get_duration_formatted() }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-scooter-orange">
-                                €{{ "%.2f"|format(rental.total_cost) }}
+                                CHF {{ "%.2f"|format(rental.total_cost) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
