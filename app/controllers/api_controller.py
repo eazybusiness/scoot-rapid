@@ -115,23 +115,30 @@ def get_rentals():
     try:
         user_id = get_jwt_identity()
         rentals = Rental.query.filter_by(user_id=user_id).all()
-        return jsonify({
-            'rentals': [
-                {
-                    'id': rental.id,
-                    'scooter': {
-                        'id': rental.scooter.id,
-                        'model': rental.scooter.model,
-                        'license_plate': rental.scooter.license_plate
-                    },
-                    'start_time': rental.start_time.isoformat() if rental.start_time else None,
-                    'end_time': rental.end_time.isoformat() if rental.end_time else None,
-                    'status': rental.status,
-                    'total_cost': rental.total_cost,
-                    'duration_formatted': rental.get_duration_formatted()
+        user_rentals = []
+        for rental in rentals:
+            rental_data = {
+                'id': rental.id,
+                'start_time': rental.start_time.isoformat() if rental.start_time else None,
+                'end_time': rental.end_time.isoformat() if rental.end_time else None,
+                'status': rental.status,
+                'total_cost': rental.total_cost,
+                'duration_formatted': rental.get_duration_formatted()
+            }
+            
+            # Add scooter info only if scooter exists
+            if rental.scooter:
+                rental_data['scooter'] = {
+                    'id': rental.scooter.id,
+                    'model': rental.scooter.model,
+                    'license_plate': rental.scooter.license_plate
                 }
-                for rental in rentals
-            ]
+            else:
+                rental_data['scooter'] = None
+            
+            user_rentals.append(rental_data)
+        return jsonify({
+            'rentals': user_rentals
         }), 200
     except Exception as e:
         return jsonify({'error': 'Failed to fetch rentals', 'details': str(e)}), 500
@@ -143,21 +150,31 @@ def get_rental(rental_id):
     try:
         user_id = get_jwt_identity()
         rental = Rental.query.filter_by(id=rental_id, user_id=user_id).first_or_404()
-        return jsonify({
+        
+        # Build rental data with scooter info
+        rental_data = {
             'id': rental.id,
-            'scooter': {
-                'id': rental.scooter.id,
-                'model': rental.scooter.model,
-                'license_plate': rental.scooter.license_plate
-            },
             'start_time': rental.start_time.isoformat() if rental.start_time else None,
             'end_time': rental.end_time.isoformat() if rental.end_time else None,
             'status': rental.status,
             'total_cost': rental.total_cost,
             'base_fee': rental.base_fee,
             'per_minute_rate': rental.per_minute_rate,
-            'duration_formatted': rental.get_duration_formatted()
-        }), 200
+            'duration_formatted': rental.get_duration_formatted(),
+            'status': rental.status
+        }
+        
+        # Add scooter info only if scooter exists
+        if rental.scooter:
+            rental_data['scooter'] = {
+                'id': rental.scooter.id,
+                'model': rental.scooter.model,
+                'license_plate': rental.scooter.license_plate
+            }
+        else:
+            rental_data['scooter'] = None
+        
+        return jsonify(rental_data), 200
     except Exception as e:
         return jsonify({'error': 'Failed to fetch rental', 'details': str(e)}), 500
 
@@ -227,8 +244,9 @@ def end_rental(rental_id):
         rental.total_cost = rental.calculate_cost()
         rental.status = 'completed'
         
-        # Update scooter status
-        rental.scooter.status = 'available'
+        # Update scooter status only if scooter exists
+        if rental.scooter:
+            rental.scooter.status = 'available'
         
         db.session.commit()
         

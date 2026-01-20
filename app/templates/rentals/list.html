@@ -137,16 +137,16 @@
                                     <div class="text-sm font-medium text-gray-900">
                                         {% if rental.scooter %}
                                         {{ rental.scooter.model }}
-                                        {% else %}
-                                        -
-                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-500 italic">Gelöscht</span>
+                                    {% endif %}
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {% if rental.scooter %}
                                         ({{ rental.scooter.license_plate }})
-                                        {% else %}
-                                        -
-                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-500 italic"></span>
+                                    {% endif %}
                                     </div>
                                 </div>
                             </div>

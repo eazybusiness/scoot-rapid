@@ -100,7 +100,7 @@ class RentalResource(Resource):
         
         # Check access
         if not current_user.is_admin() and rental.user.id != current_user.id:
-            if not (current_user.is_provider() and rental.scooter.provider.id == current_user.id):
+            if not (current_user.is_provider() and rental.scooter and rental.scooter.provider.id == current_user.id):
                 return {'message': 'Not authorized'}, 403
         
         include_sensitive = current_user.is_admin() or rental.user.id == current_user.id

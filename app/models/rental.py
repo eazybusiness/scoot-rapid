@@ -42,8 +42,9 @@ class Rental(db.Model):
     def __init__(self, **kwargs):
         super(Rental, self).__init__(**kwargs)
         
-        # Critical validation: scooter_id must not be None
-        if self.scooter_id is None:
+        # Critical validation: scooter_id must not be None for new rentals
+        # But allow None for existing rentals (when scooter is deleted)
+        if self.scooter_id is None and not hasattr(self, '_allow_none_scooter_id'):
             raise ValueError("scooter_id cannot be None - rental must be associated with a scooter")
         
         if not self.rental_code:
@@ -70,10 +71,6 @@ class Rental(db.Model):
         if self.status != 'active':
             raise ValueError("Rental is not active")
         
-        # Debug: Ensure scooter_id is not None
-        if self.scooter_id is None:
-            raise ValueError("scooter_id cannot be None when ending rental")
-        
         self.end_time = datetime.utcnow()
         self.status = 'completed'
         
@@ -86,22 +83,20 @@ class Rental(db.Model):
         
         self.total_cost = self.calculate_cost()
         
-        from app.models.scooter import Scooter
-        scooter = Scooter.query.get(self.scooter_id)
-        if scooter:
-            scooter.set_status('available')
-            if end_latitude and end_longitude:
-                scooter.update_location(end_latitude, end_longitude)
+        # Handle deleted scooters gracefully
+        if self.scooter_id is not None:
+            from app.models.scooter import Scooter
+            scooter = Scooter.query.get(self.scooter_id)
+            if scooter:
+                scooter.set_status('available')
+                if end_latitude and end_longitude:
+                    scooter.update_location(end_latitude, end_longitude)
         
         db.session.commit()
     
     def cancel_rental(self, reason=None):
         if self.status != 'active':
             raise ValueError("Only active rentals can be cancelled")
-        
-        # Debug: Ensure scooter_id is not None
-        if self.scooter_id is None:
-            raise ValueError("scooter_id cannot be None when cancelling rental")
         
         self.status = 'cancelled'
         self.end_time = datetime.utcnow()
@@ -111,10 +106,12 @@ class Rental(db.Model):
         
         self.total_cost = min(self.calculate_cost(), self.base_fee)
         
-        from app.models.scooter import Scooter
-        scooter = Scooter.query.get(self.scooter_id)
-        if scooter:
-            scooter.set_status('available')
+        # Handle deleted scooters gracefully
+        if self.scooter_id is not None:
+            from app.models.scooter import Scooter
+            scooter = Scooter.query.get(self.scooter_id)
+            if scooter:
+                scooter.set_status('available')
         
         db.session.commit()
     
@@ -165,9 +162,10 @@ class Rental(db.Model):
         if not (1 <= rating <= 5):
             raise ValueError("Rating must be between 1 and 5")
         
-        # Debug: Ensure scooter_id is not None
+        # Allow scooter_id = None for deleted scooters, but warn
         if self.scooter_id is None:
-            raise ValueError("scooter_id cannot be None when updating rental")
+            # Don't raise error - allow rating for rentals of deleted scooters
+            pass
         
         self.rating = rating
         self.feedback = feedback
@@ -202,6 +200,18 @@ class Rental(db.Model):
             'total_cost': float(self.total_cost) if self.total_cost else 0.0,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+        
+        # Add scooter info only if scooter exists
+        if self.scooter_id is not None:
+            data['scooter'] = {
+                'id': self.scooter.id,
+                'identifier': self.scooter.identifier,
+                'model': self.scooter.model,
+                'brand': self.scooter.brand,
+                'license_plate': self.scooter.license_plate
+            }
+        else:
+            data['scooter'] = None  # Scooter was deleted
         
         if include_sensitive:
             data.update({

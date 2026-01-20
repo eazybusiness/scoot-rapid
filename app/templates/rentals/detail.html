@@ -146,9 +146,9 @@
                                     <span class="font-semibold text-gray-900">
                                         {% if rental.scooter %}
                                         {{ rental.scooter.model }} ({{ rental.scooter.license_plate }})
-                                        {% else %}
-                                        -
-                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-500 italic">Scooter wurde gelöscht</span>
+                                    {% endif %}
                                     </span>
                                 </div>
                                 <div class="flex justify-between items-center py-2 border-b border-gray-100">

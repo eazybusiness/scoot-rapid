@@ -34,7 +34,7 @@ def detail(rental_id):
     
     # Check access
     if not current_user.is_admin() and rental.user_id != current_user.id:
-        if not (current_user.is_provider() and rental.scooter.provider_id == current_user.id):
+        if not (current_user.is_provider() and rental.scooter and rental.scooter.provider_id == current_user.id):
             flash('You are not authorized to view this rental', 'danger')
             return redirect(url_for('rentals.list_rentals'))
     

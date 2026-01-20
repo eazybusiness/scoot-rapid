@@ -170,9 +170,20 @@ def delete(scooter_id):
     
     try:
         from app import db
+        from app.models.rental import Rental
+        
+        # Set scooter_id to None for all rentals to maintain data integrity
+        rentals = Rental.query.filter_by(scooter_id=scooter.id).all()
+        for rental in rentals:
+            # Mark as allowed to have None scooter_id
+            rental._allow_none_scooter_id = True
+            rental.scooter_id = None
+        
+        # Now safely delete the scooter
         db.session.delete(scooter)
         db.session.commit()
-        flash('Scooter deleted successfully!', 'success')
+        
+        flash(f'Scooter deleted successfully! {len(rentals)} rental(s) preserved without scooter reference.', 'success')
         return redirect(url_for('scooters.list_scooters'))
     except Exception as e:
         flash(f'Error deleting scooter: {str(e)}', 'danger')
