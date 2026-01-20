@@ -117,10 +117,29 @@ def edit(scooter_id):
     if request.method == 'POST':
         try:
             from app import db
+            
+            # Update all fields including identifier and license plate
+            new_identifier = request.form.get('identifier').upper()
+            
+            # Check if identifier exists (excluding current scooter)
+            existing_scooter = Scooter.query.filter(
+                Scooter.identifier == new_identifier,
+                Scooter.id != scooter_id
+            ).first()
+            if existing_scooter:
+                flash('Scooter with this identifier already exists', 'danger')
+                return render_template('scooters/edit.html', scooter=scooter)
+            
+            scooter.identifier = new_identifier
+            scooter.license_plate = request.form.get('license_plate')
             scooter.model = request.form.get('model')
             scooter.brand = request.form.get('brand')
             scooter.address = request.form.get('address')
+            scooter.latitude = float(request.form.get('latitude'))
+            scooter.longitude = float(request.form.get('longitude'))
+            scooter.location = request.form.get('location')
             scooter.battery_level = int(request.form.get('battery_level'))
+            scooter.status = request.form.get('status')
             db.session.commit()
             
             flash('Scooter updated successfully!', 'success')
